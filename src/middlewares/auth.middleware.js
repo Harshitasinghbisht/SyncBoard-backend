@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 const isLoggedIn=async(req,res,next)=>{
     try {
         const token=req.cookies.token;
-        console.log("user token" , token ? "yes" : "No")
-        console.log(token)
+        
+        
         if(!token){
             return res.status(401).json({
                 message:"authentication failed",
@@ -12,7 +12,7 @@ const isLoggedIn=async(req,res,next)=>{
             })
         }
       const decoded=    jwt.verify(token,process.env.JWT_SECRET);
-      console.log("decoded data", decoded)
+    
       req.user=decoded
 
       next()

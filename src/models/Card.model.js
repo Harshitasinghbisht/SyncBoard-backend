@@ -4,7 +4,7 @@ const cardSchema= new mongoose.Schema({
 title:{
     type:String,
     required:true,
-    trim:truncates
+    trim:true
 },
 description:{
     type:String,
@@ -22,7 +22,7 @@ listId:{
 },
 order:{
     type:Number,
-    required:trusted
+    required:true
 },
 createdBy:{
     type:mongoose.Schema.Types.ObjectId,

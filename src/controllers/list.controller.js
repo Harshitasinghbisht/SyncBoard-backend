@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Board from "../models/Board.model.js";
 import List from "../models/List.model.js";
 
@@ -5,6 +6,12 @@ const createList=async(req,res)=>{
  const {boardId}=req.params;
  const {title}=req.body;
  const {id:userId}=req.user;
+ if(!title){
+    return res.status(400).json({
+        status:false,
+        message:"All fields are required"
+    })
+ }
  try {
     const board=await Board.findById(boardId);
     if(!board){
@@ -13,7 +20,7 @@ const createList=async(req,res)=>{
             message:"board not found from controller",
         })}
 //count the document list inside the board document  
-console.log("bordid",boardId)
+
 const count=await List.countDocuments({
     board:boardId
 })
@@ -42,7 +49,7 @@ const list=await List.create({
     board:boardId,
     order:newOrder
 })
-console.log("List",list)
+
 if(!list){
     return res.status(400).json({
     status:false,
@@ -69,6 +76,13 @@ const updateList=async(req,res)=>{
 const {listId}=req.params;
 const {title}=req.body;
 const {id:userId}=req.user;
+
+if(!title){
+    return res.status(400).json({
+        status:false,
+        message:"All fields are required"
+    })
+}
 try {
      const list=await List.findById(listId);
     if(!list){
@@ -197,33 +211,44 @@ try {
 const reOrderList=async(req,res)=>{
 
     const{listId,preListId,nextListId}=req.body;
+    if(!listId || !preListId || !nextListId){
+        return res.status(400).json({
+            status:false,
+            message:"All fields are required"
+        })
+    }
     try {
+        const session=await mongoose.startSession();
+        session.startTransaction();
         let newOrder;
         if(preListId && nextListId){
-            const preList=await List.findById(preListId);
-            const nextList=await List.findById(nextListId);
+            const preList=await List.findById(preListId).session(session);
+            const nextList=await List.findById(nextListId).session(session);
 
             newOrder=(preList.order+nextList.order)/2;
         }
 
         else if (!preListId && nextListId) {
-            const nextList=await List.findById(nextListId);
+            const nextList=await List.findById(nextListId).session(session);
             newOrder=nextList.order-100;
         } else {
-            const preList=await List.findById(preListId);
+            const preList=await List.findById(preListId).session(session);
             newOrder=preList.order+100;
         }
 
         const updateList=await List.findByIdAndUpdate(listId,
             {order:newOrder},
             { returnDocument: "after"}
-        )
+        ).session(session);
         if(!updateList){
             return res.status(400).json({
                 status:false,
                 message:"reordering list failed"
             })
         }
+        await session.commitTransaction();
+        session.endSession();
+
         res.status(200).json({
             status:true,
             message:"list reorder successful"

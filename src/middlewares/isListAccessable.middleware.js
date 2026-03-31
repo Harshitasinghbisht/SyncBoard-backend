@@ -1,7 +1,7 @@
 import List from "../models/List.model.js";
 import Board from "../models/Board.model.js";
 
-const isListAccessable=async (req,res,next)=>{
+const listAccessable=async (req,res,next)=>{
     const {listId}=req.params;
     const {id:userId}=req.user;
     try {
@@ -10,7 +10,7 @@ const isListAccessable=async (req,res,next)=>{
         if(!list){
            return res.status(400).json({
                 status:false,
-                message:"list not found"
+                message:"list not found in middleware"
             })
         }
 
@@ -38,4 +38,4 @@ const isListAccessable=async (req,res,next)=>{
     }
 }
 
-export default isListAccessable;
+export default listAccessable;

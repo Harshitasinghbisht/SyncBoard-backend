@@ -21,7 +21,7 @@ const createBoard=async(req,res)=>{
         title,
         owner:userId
         })
-        console.log(board)
+       
         res.status(201).json({
             success:true,
             message:"board creation successful",
@@ -38,7 +38,7 @@ const createBoard=async(req,res)=>{
 };
 const getAllBoard=async(req,res)=>{
     try {
-        const {id:userId} =req.user;//this is coming from middleware
+        const {id:userId} =req.user;
         const boards=await Board.find({
           $or:[
             {owner:userId},
@@ -100,8 +100,7 @@ const deleteBoard=async(req,res)=>{
         try {
         const {boardId}=req.params;
         const {id:userId} = req.user;
-        console.log("userId",userId)
-          console.log("boardId",boardId)
+        
         const board=await Board.findOneAndDelete({
             _id:boardId,
             owner:userId
@@ -129,9 +128,16 @@ const addMember=async(req,res)=>{
 const {boardId}=req.params;
 const {memberId}=req.body;
 const {id:userId}=req.user;
+
+if(!memberId){
+    return res.status(400).json({
+        status:false,
+        message:"required all fields"
+    })
+}
 try {
-    const board=await Board.findById(boardId);//findby id work differently from findone
-    console.log(board);
+    const board=await Board.findById(boardId);
+   
     if(!board){
         return res.status(400).json({
             success:false,
@@ -144,8 +150,8 @@ try {
             message:"cannot add owner in member array"
         })
     }
-    console.log(board.owner.toString()!==userId.toString())
-    if(board.owner.toString()!==userId.toString()){
+    
+    if(board.owner.toString()!==userId){
     return res.status(400).json({
             success:false,
             message:"unauthorized"
@@ -154,7 +160,7 @@ try {
     const matched = board.members.some(
   member => member.toString() === memberId
 );
-    console.log(matched)
+    
     if(matched){
            return res.status(400).json({
             success:false,
@@ -191,20 +197,28 @@ try {
     const board=await  Board.findOne({
         _id:boardId
     })
-    console.log(board)
+   
     if(!board){
         return res.status(400).json({
             status:false,
             message:"board not found"
         })
     }
-    console.log(board.owner.toString()===memberId)
+   
     if(board.owner.toString()===memberId){
           return res.status(400).json({
             status:false,
             message:"cannot remove owner"
         })
     }
+
+    if(board.owner.toString()!==userId){
+          return res.status(400).json({
+            status:false,
+            message:"unauthorized"
+        })
+    }
+   
      const matched = board.members.some(
   member => member.toString() === memberId
 );
@@ -263,4 +277,3 @@ res.status(200).json({
 };
 
 export {createBoard,getAllBoard,getSingleBoard,deleteBoard,addMember,removeMember,getAllMember}
-//later can be polished for the comcomming feature

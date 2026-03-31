@@ -27,6 +27,7 @@ const userSchema=new mongoose.Schema({
     timestamps:true
 });
 // for incrypting the password for the safty resons
+
 userSchema.pre("save",async function(){
     if(this.isModified("password")){
         this.password= await bcrypt.hash(this.password,10)//here 10 represent the 10round of hashing algorithm is running

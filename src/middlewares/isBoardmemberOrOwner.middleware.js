@@ -1,6 +1,6 @@
 import Board from "../models/Board.model.js";
 
-const isBoardMemberOrOwner=async(req,res,next)=>{
+const boardMemberOrOwner=async(req,res,next)=>{
 try {
     const {boardId}=req.params;
     const {id:userId}=req.user;
@@ -11,6 +11,7 @@ try {
             {members:userId}
         ]
     })
+    console.log("here",board)
     if(!board){
         return res.status(404).json({
             status:false,
@@ -28,4 +29,4 @@ try {
 }
 }
 
-export {isBoardMemberOrOwner};
+export default boardMemberOrOwner;

@@ -5,14 +5,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken"
 
 const userRegister=async(req,res)=>{
-//get data
-//validate
-//check if user already exist
-//create user in database
-//create a verification token   
-//save token in database
-//send token as email to user
-//send a succes status to user
+
   const { name, email, password } = req.body || {};
 
   if (!name || !email || !password) {
@@ -33,7 +26,6 @@ try {
         email,
         password
     })
-    console.log(user)
 
     if(!user){
         return res.status(400).json({
@@ -80,16 +72,6 @@ const mailOption={
 
 };
 const userVerify=async(req,res)=>{
-  //implement the try ctach bolck for the code later
-
-//get token from url
-//validate
-//find user on the basis on the token
-//if not
-//verify user true 
-//  remove the token
-//save the user details
-//return responce
 
 const {token}=req.params;
 if(!token){
@@ -217,11 +199,14 @@ const logout=async(req,res)=>{
 }
 const forgetPassword=async(req,res)=>{
      const {email}=req.body;
+     if(!email){
+      return res.status(400).json({
+        status:false,
+        message:"all fields are required"
+      })
+     }
   try {
-    //get email
-    //find user based on email
-    //set reset token and reset expire  example date.now()+10*60*1000  =10 min
-    //send email design url
+    
     const user= await User.findOne({email})
     if(!user){
       return res.status(400).json({
@@ -268,20 +253,20 @@ const mailOption={
 const resetPassword=async(req,res)=>{
  
   try {
-    //collect token from params
-    //password from res.body
-    //find user on basis on reset token and reset expires
-    //set password
-    //empty resettoken and reset expiry
-    //save user
-     const {token}=req.params;  //tis by user side coming from user url
-     const {password}=req.body; // this is from the user side but coming from the form
+    
+     const {token}=req.params;  
+     const {password}=req.body;
+     if(!password){
+      res.status(400).json({
+        status:false,
+        message:"All fields are required"
+      })
+     } 
    const user=await User.findOne({
     passwordResetToken:token,
     passwordResetExpire:{$gt:Date.now()}
    })
-   console.log("token",token,"password",password)
-   console.log("User",user)
+   
    if(!user){
     return res.status(400).json({
      success:false,
@@ -289,7 +274,7 @@ const resetPassword=async(req,res)=>{
  })
    }
    user.password=password;
-   console.log(password)
+  
    user.passwordResetToken=undefined;
    user.passwordResetExpire=undefined;
    await user.save();
