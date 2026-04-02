@@ -1,71 +1,48 @@
-import mongoose from "mongoose";
-import Board from "../models/Board.model.js";
 import List from "../models/List.model.js";
 
 const createList=async(req,res)=>{
- const {boardId}=req.params;
  const {title}=req.body;
- const {id:userId}=req.user;
- if(!title){
+ const board=req.board
+
+ const trimTitle=title?.trim();
+ if(!trimTitle){
     return res.status(400).json({
-        status:false,
+        success:false,
         message:"All fields are required"
     })
  }
  try {
-    const board=await Board.findById(boardId);
-    if(!board){
-        return res.status(400).json({
-            status:false,
-            message:"board not found from controller",
-        })}
 //count the document list inside the board document  
 
 const count=await List.countDocuments({
-    board:boardId
+    board:board._id
 })
-//we are using count for the order the list
-if(count === null || count === undefined){
-    return res.status(400).json({
-        status:false,
-        message:"unable to count all list"
-    })
-}
-//check for the permission
-const isOwner=board.owner.toString()===userId;
-const isMember=board.members.some(member=>member.toString()===userId);
-if(!isOwner && !isMember){
-   return res.status(400).json({
-        status:false,
-        message:"not authorized"
-    }) 
-}
-const lastList = await List.findOne({ board: boardId })
+const lastList = await List.findOne({board:board._id})
   .sort({ order: -1 });
 
 const newOrder = lastList ? lastList.order + 100 : 0;
 const list=await List.create({
-    title,
-    board:boardId,
+    trimTitle,
+    board:board._id,
     order:newOrder
 })
 
 if(!list){
     return res.status(400).json({
-    status:false,
+    success:false,
     message:"unable to create list"
     })
 }
-    res.status(200).json({
-        status:true,
-        message:"list creation successful",
+    res.status(201).json({
+        success:true,
+        message:"list created successfully",
         list,
         count
     })    
 
  } catch (error) {
     res.status(500).json({
-        status:false,
+        success:false,
         message:"list creation failed",
         error:error.message
     })
@@ -73,193 +50,182 @@ if(!list){
 };
 const updateList=async(req,res)=>{
 
-const {listId}=req.params;
 const {title}=req.body;
-const {id:userId}=req.user;
+const list=req.list;
 
-if(!title){
+const trimTitle=title?.trim();
+if(!trimTitle){
     return res.status(400).json({
-        status:false,
-        message:"All fields are required"
+        success:false,
+        message:" Title is required"
     })
 }
 try {
-     const list=await List.findById(listId);
-    if(!list){
-        res.status(400).json({
-            status:false,
-            message:"list not found"
-        })
-    }
-    const board=await Board.findOne({
-        _id:list.board,
-         $or: [
-    { owner: userId },
-    { members: { $in: [userId] } }
-  ]
-    })
-   if(!board){
-   return res.status(400).json({
-        status:false,
-        message:"not authorized"
-    }) 
-}
-    
-   const updateList=await List.findByIdAndUpdate(listId,
-     { $set: { title }  },
-     {returnDocument: "after" }
-   )
-   if(!updateList){
-    return res.status(400).json({
-        status:false,
-        message:"updation list failed"
-    })
-   }
+      req.list.title = trimTitle;
+      await req.list.save();
   res.status(200).json({
-    status:true,
-    message:"list update successful",
-    list
+    success:true,
+    message:"list updated successfully",
+    list:req.list
   })
 } catch (error) {
      res.status(500).json({
-    status:false,
+    success:false,
     message:"list update failed ",
     error:error.message
   })
 }
 };
 const deleteList=async(req,res)=>{
-const {listId}=req.params;
-const {id:userId}=req.user;
+
+const list=req.list;
 try {
-    //finding list
-const list=await List.findById(listId);
-    if(!list){
-        res.status(400).json({
-            status:false,
-            message:"list deletion failed"
-        })
-    }
-    //check permission for board
-    const board=await Board.findById(list.board);
-
-    const isOwner=board.owner.toString()===userId;
-    const isMember=board.members.some(member=>member.toString()===userId);
-    if(!isOwner && !isMember){
-         res.status(400).json({
-            status:false,
-            message:"not authorized"
-        })
-    }
-
-    await List.findByIdAndDelete(listId)
+    await list.deleteOne();
     res.status(200).json({
-        status:true,
-        message:"list delete successful"
+        success:true,
+        message:"list deleted successfully"
     })
     
 } catch (error) {
      res.status(500).json({
-        status:false,
+        success:false,
         message:"list delete failed server error",
-        error:ErrorEvent.message
+        error:error.message
     })
 }
 };
 const getAllList=async(req,res)=>{
-const {boardId}=req.params;
-const {id:userId}=req.user;
+const board=req.board;
 try {
-     const board = await Board.findById(boardId);
-    if (!board) {
-      return res.status(404).json({
-        status: false,
-        message: "Board not found",
-      });
-    }
-     const isOwner=board.owner.toString()===userId;
-    const isMember=board.members.some(member=>member.toString()===userId);
-    if(!isOwner && isMember){
-        return res.status(400).json({
-            status:false,
-            message:"not authorized"
-        })
-    }
     const lists=await List.find({
-        board:boardId
-    })
-    if(!lists){
-        return res.status(400).json({
-            status:false,
-            message:"unable to featch all list"
-        })
-    }
-   
+        board:board._id
+    }).sort({order: 1})
+    
     res.status(200).json({
-        status:true,
-        message:"featched list successfully",
+        success:true,
+        message:"List featched successfully",
         lists
     })
 } catch (error) {
      res.status(500).json({
-        status:false,
+        success:false,
         message:"featched list failed",
         error:error.message
     })
 }
 };
-const reOrderList=async(req,res)=>{
+const reOrderList = async (req, res) => {
+  const { listId } = req.params;
+  const { preListId, nextListId } = req.body;
 
-    const{listId,preListId,nextListId}=req.body;
-    if(!listId || !preListId || !nextListId){
+  try {
+    if (!listId) {
+      return res.status(400).json({
+        success: false,
+        message: "List id is required"
+      });
+    }
+
+    if (!preListId && !nextListId) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one adjacent list id is required"
+      });
+    }
+
+    if (preListId && preListId === listId) {
+      return res.status(400).json({
+        success: false,
+        message: "Previous list cannot be the same as current list"
+      });
+    }
+
+    if (nextListId && nextListId === listId) {
+      return res.status(400).json({
+        success: false,
+        message: "Next list cannot be the same as current list"
+      });
+    }
+
+    if (preListId && nextListId && preListId === nextListId) {
+      return res.status(400).json({
+        success: false,
+        message: "Previous and next list cannot be the same"
+      });
+    }
+
+    const currentList = req.list;
+    let preList = null;
+    let nextList = null;
+    let newOrder;
+
+    if (preListId) {
+      preList = await List.findById(preListId);
+
+      if (!preList) {
+        return res.status(404).json({
+          success: false,
+          message: "Previous list not found"
+        });
+      }
+
+      if (preList.board.toString() !== currentList.board.toString()) {
         return res.status(400).json({
-            status:false,
-            message:"All fields are required"
-        })
+          success: false,
+          message: "Previous list does not belong to the same board"
+        });
+      }
     }
-    try {
-        const session=await mongoose.startSession();
-        session.startTransaction();
-        let newOrder;
-        if(preListId && nextListId){
-            const preList=await List.findById(preListId).session(session);
-            const nextList=await List.findById(nextListId).session(session);
 
-            newOrder=(preList.order+nextList.order)/2;
-        }
+    if (nextListId) {
+      nextList = await List.findById(nextListId);
 
-        else if (!preListId && nextListId) {
-            const nextList=await List.findById(nextListId).session(session);
-            newOrder=nextList.order-100;
-        } else {
-            const preList=await List.findById(preListId).session(session);
-            newOrder=preList.order+100;
-        }
+      if (!nextList) {
+        return res.status(404).json({
+          success: false,
+          message: "Next list not found"
+        });
+      }
 
-        const updateList=await List.findByIdAndUpdate(listId,
-            {order:newOrder},
-            { returnDocument: "after"}
-        ).session(session);
-        if(!updateList){
-            return res.status(400).json({
-                status:false,
-                message:"reordering list failed"
-            })
-        }
-        await session.commitTransaction();
-        session.endSession();
-
-        res.status(200).json({
-            status:true,
-            message:"list reorder successful"
-        })
-    } catch (error) {
-         res.status(500).json({
-            status:false,
-            message:"list reorder failed server error",
-            error:error.message
-        })
+      if (nextList.board.toString() !== currentList.board.toString()) {
+        return res.status(400).json({
+          success: false,
+          message: "Next list does not belong to the same board"
+        });
+      }
     }
+
+    if (preList && nextList) {
+      if (preList.order >= nextList.order) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid list order positions"
+        });
+      }
+
+      newOrder = (preList.order + nextList.order) / 2;
+    } else if (!preList && nextList) {
+      newOrder = nextList.order - 100;
+    } else if (preList && !nextList) {
+      newOrder = preList.order + 100;
+    }
+
+    currentList.order = newOrder;
+    await currentList.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "List reordered successfully",
+      list: currentList
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "List reorder failed",
+      error: error.message
+    });
+  }
 };
-//do testing with members
+
+
 export {createList,updateList,deleteList,getAllList,reOrderList}

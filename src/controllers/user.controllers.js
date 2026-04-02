@@ -10,6 +10,7 @@ const userRegister=async(req,res)=>{
 
   if (!name || !email || !password) {
     return res.status(400).json({
+      success:false,
       message: "All fields are required"
     });
   }
@@ -18,6 +19,7 @@ try {
      const existingUser= await User.findOne({email});
  if(existingUser){
     return res.status(400).json({
+      success:false,
         message:"user already exist"
     })
  }
@@ -29,6 +31,7 @@ try {
 
     if(!user){
         return res.status(400).json({
+            success:false,
             message:"user not register"
         })
     }
@@ -63,9 +66,9 @@ const mailOption={
  })
 } catch (error) {
     res.status(400).json({
+      success:false,
   message:"User not register ",
-  error,  
-  success:false
+  error:error.message
  })
 }
   
@@ -76,6 +79,7 @@ const userVerify=async(req,res)=>{
 const {token}=req.params;
 if(!token){
   return res.status(400).json({
+    success:false,
     message:"Invalid token"
   })
 }
@@ -84,6 +88,7 @@ if(!token){
   
 if(!user){
   return res.status(400).json({
+    success:false,
     message:"invalid token"
   })
 }
@@ -100,6 +105,7 @@ res.status(201).json({
   const{email,password}=req.body;
   if(!email || !password){
     return res.status(400).json({
+      success:false,
       message:"all field required"
     })
   }
@@ -107,12 +113,14 @@ res.status(201).json({
   const user= await User.findOne({email});
   if(!user){
       return res.status(400).json({
+        success:false,
       message:"invalid email,password"
     })
   }
     const isMatched=await bcrypt.compare(password,user.password)
     if(!isMatched){
       return res.status(400).json({
+        success:false,
       message:"invalid email,password"
     })
     }
@@ -120,6 +128,7 @@ res.status(201).json({
 
   if(!user.isVerfied){
     return res.status(400).json({
+      success:false,
       message:"Please verify your email first"
     })
     }
@@ -152,7 +161,9 @@ res.status(201).json({
   }  catch (error) { 
     console.log(error.message)
     return res.status(500).json({
-      message:"Login failed"
+      success:false,
+      message:"Login failed",
+      error:error.message
     })
   }
   }
@@ -183,7 +194,7 @@ const logout=async(req,res)=>{
     //here Date(0) means 1970 date recent date is 2026 so it delete the token automatically by browser
     res.clearCookie("token",{
        httpOnly: true,
-      secure: true,       // use false in localhost if not using HTTPS
+      secure: false,       // use false in localhost if not using HTTPS
       sameSite: "strict"
     })
     return res.status(200).json({

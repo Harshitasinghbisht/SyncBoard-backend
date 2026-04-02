@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 const boardSchema=new mongoose.Schema({
 title:{
     type:String,
-    required:true
+    required:true,
+    trim:true
 },
 owner:{
    type:mongoose.Schema.Types.ObjectId,
@@ -12,8 +13,7 @@ owner:{
 members:[
     {
         type:mongoose.Schema.Types.ObjectId,
-        ref:"User",
-        default:[]
+        ref:"User"
     }
 ]
 },{timestamps:true})

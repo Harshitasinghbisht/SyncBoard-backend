@@ -3,106 +3,61 @@ import Card from "../models/Card.model.js";
 import mongoose from "mongoose";
 
 const createCard=async(req,res)=>{
-    const {listId}=req.params;
-   
+    const list=req.list;
+    const board=req.board;
     const {title,description}=req.body;
     const {id:userId}=req.user;
     try {
-      if(!title){
-        return res.status(400).json({
-            status:false,
-            message:"title required"
-        })
-      }  
+       const trimTitle = title?.trim();
+    const trimDescription = description?.trim() || "";
 
-      const list=await List.findById(listId);
-    
-      if(!list){
-         return res.status(400).json({
-            status:false,
-            message:"list not found "
-        })
-      }
-      const board=req.board;
-
-      const isOwner=board.owner.toString()===userId;
-      const isMember=board.members.some(member=>member.toString()===userId);
-      if(!isOwner  && !isMember){
-         return res.status(400).json({
-            status:false,
-            message:"unauthorized"
-        })
-      }
-     const lastCard=await Card.findById(listId).sort({order:-1});
+    if (!trimTitle) {
+      return res.status(400).json({
+        success: false,
+        message: "Title is required"
+      });
+    }
+     const lastCard=await Card.findOne({listId:list._id}).sort({order:-1});
      
      const newOrder = lastCard ? lastCard.order + 100 : 0;
 
      const card=await Card.create({
-        title,
-        description,
-        boardId:board,
-        listId,
+        trimTitle,
+        trimDescription,
+        boardId:board._id,
+        listId:list._id,
         order:newOrder,
         createdBy:userId
      })
-     console.log(card)
-     if(!card){
-        return res.status(400).json({
-            status:false,
-            message:"unable to create card"
-        })
-     }
-     res.status(200).json({
-        status:true,
-        message:"Card creation successful"
+     res.status(201).json({
+        success:true,
+        message:"Card creation successfully",
+        card
      })
     } catch (error) {
         res.status(500).json({
-        status:false,
+        success:false,
         message:"Card creation failed",
         error:error.message
      }) 
     }
 }
 const getAllCard=async(req,res)=>{
-    const {listId}=req.params;
-    const {id:userId}=req.user;
+    const list=req.list;
 
     try {
-        const list=await List.findById(listId).populate("board");
-        if(!list){
-            return res.status(400).json({
-                status:false,
-                message:"list not found"
-            })
-        }
-
-        const isOwner=list.board.owner.toString()===userId;
-       const isMember=list.board.members.some(member=>member.toString()===userId)
-
-       if(!isOwner && !isMember){
-          return res.status(400).json({
-                status:false,
-                message:"unauthorized"
-            })
-       }
      const cards=await Card.find({
-        listId
+        listId:list._id
      }).sort({order:+1})
-     if(!cards){
-       return res.status(400).json({
-                status:false,
-                message:"unable to featch cards"
-            }) 
-     }
+
      res.status(200).json({
-                status:true,
-                message:" featching cards successful",
+                success:true,
+                message:" featching cards successfully",
                 cards
             }) 
 
     } catch (error) {
-         res.status(500).json({
+         res.success(500).json({
                 status:false,
                 message:" featching cards failed ",
                 error:error.message
@@ -110,183 +65,198 @@ const getAllCard=async(req,res)=>{
     }
 }
 const updateCard=async(req,res)=>{
-    const {cardId}=req.params;
-    const {id:userId}=req.user;
     const {title,description}=req.body;
+    const card=req.card;
 
-    if(!title || !description){
+
+  const trimmedTitle = title?.trim();
+  const trimmedDescription = description?.trim();
+
+    if(title === undefined && description === undefined){
       return res.status(400).json({
-        status:false,
-        message:"All fields are required"
+        success:false,
+        message:"Atleast one field is required"
       })
     }
+     if (title !== undefined) {
+    if (!trimmedTitle) {
+      return res.status(400).json({
+        success: false,
+        message: "Title cannot be empty"
+      });
+    }
+    card.title = trimmedTitle;
+  }
+
+  if (description !== undefined) {
+    card.description = trimmedDescription || "";
+  }
+
     try {
-        const card=await Card.findById(cardId).populate("boardId");
-        if(!card){
-            return res.status(400).json({
-                status:false,
-                message:"Card not found"
-            })
-        }
-        const isOwner=card.boardId.owner.toString()===userId;
-        const isMember=card.boardId.members.some(member=>member.toString()==userId)
-        if(!isOwner && !isMember){
-             return res.status(400).json({
-                status:false,
-                message:"Unauthorized"
-            })
-        }
-        const updateCard=await Card.findByIdAndUpdate(
-            cardId,
-            {$set:  {title,
-                description,
-                updatedAt:new Date()
-            }},
-            {new:true}
-        )
-        if(!updateCard){
-            return res.status(400).json({
-                status:false,
-                message:"card updation failed"
-            })
-        }
+        await card.save();
+
         res.status(200).json({
-                status:true,
+                success:true,
                 message:"card updation successful",
-                updateCard
+                card
             })
     } catch (error) {
          return res.status(500).json({
-                status:false,
+                success:false,
                 message:"card updation failed sever failed",
                 error:error.message
             })
     }
 }
 const deleteCard=async(req,res)=>{
-    const {cardId}=req.params;
-    const {id:userId}=req.user;
+    const card=req.card;
     try {
-        const card=await Card.findById(cardId).populate("boardId");
-        if(!card){
-            return res.status(400).json({
-                status:false,
-            message:"card not found"            })
-        }   
-             const isOwner=card.boardId.owner.toString()===userId;
-        const isMember=card.boardId.members.some(member=>member.toString()==userId)
-        if(!isOwner && !isMember){
-             return res.status(400).json({
-                status:false,
-                message:"Unauthorized"
-            })
-        }
-        await Card.findByIdAndDelete(cardId);
+        await card.deleteOne();
         res.status(200).json({
-            status:true,
-            message:"card deleted successful"
+            success:true,
+            message:"card deleted successfully"
         })
     } catch (error) {
          res.status(500).json({
-            status:false,
+            success:false,
             message:"card deleted failed server failed",
             error:error.message
         })
     }
 }
-const moveCard=async(req,res)=>{
-    const {cardId,sourceListId,destinationListId,newPosition}=req.body;
-    const {id:userId}=req.user;
-    
-    try {
-       
-        if(!cardId || !sourceListId || !destinationListId || !newPosition==undefined){
-            return res.status(400).json({
-                status:false,
-                message:"all fields are required"
-            })
-        }
-        
-         const session=await mongoose.startSession();
-        session.startTransaction();
+const moveCard = async (req, res) => {
+  const { sourceListId, destinationListId, newPosition } = req.body;
+  const card = req.card;
+  const board = req.board;
 
-        let card=await Card.findById(cardId).populate("boardId").session(session);
-        if(!card){
-            return res.status(400).json({
-                status:false,
-                message:"card not found"
-            })
-        }
+  const session = await mongoose.startSession();
 
-        const isOwner=card.boardId.owner.toString()===userId;
-        const isMember=card.boardId.members.some(member=>member.toString()===userId);
-        console.log(isMember);
-        console.log(isOwner)
-        if(!isOwner && !isMember){
-            return res.status(400).json({
-                status:false,
-                message:"unauthorized "
-            })
-        }
-        let updateCard = []; 
-// if user move the card within the same list
-        if(sourceListId===destinationListId){
-        let cards=await  Card.find({listId:sourceListId}).sort({order: +1}).session(session);
-        
-        //remove card
-        cards=cards.filter(card=>card._id.toString()!==cardId);
+  try {
+    if (!sourceListId || !destinationListId || newPosition === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Source list id, destination list id and new position are required"
+      });
+    }
 
-        //insert in new position
-        cards.splice(newPosition,0,card)
+    if (Number.isNaN(Number(newPosition)) || Number(newPosition) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "New position must be a valid non-negative number"
+      });
+    }
 
-        //resign order
-        for(let i=0; i<cards.length;i++){
-            cards[i].order=(i+1)*100;
-            await cards[i].save({session});
-        }
-        updateCard=cards;
-        }
-        else{
-            let sourceCards=await Card.find({listId:destinationListId}).sort({order:1}).session(session);
-            
-            sourceCards=sourceCards.filter(sourceCard=>sourceCard._id.toString()!==cardId);
-            for(let i=0; i<sourceCards.length;i++){
-            sourceCards[i].order=(i+1)*100;
-            await sourceCards[i].save({session});
-        }
-         //destination list
-        let destinationCard=await Card.find({listId:destinationListId})
+    const parsedPosition = Number(newPosition);
+
+    if (card.listId.toString() !== sourceListId.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "Card does not belong to the provided source list"
+      });
+    }
+
+    const sourceList = await List.findById(sourceListId).session(session);
+    const destinationList = await List.findById(destinationListId).session(session);
+
+    if (!sourceList || !destinationList) {
+      return res.status(404).json({
+        success: false,
+        message: "Source or destination list not found"
+      });
+    }
+
+    if (
+      sourceList.board.toString() !== board._id.toString() ||
+      destinationList.board.toString() !== board._id.toString()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Lists do not belong to the same board"
+      });
+    }
+
+    await session.startTransaction();
+
+    let updatedCards = [];
+
+    if (sourceListId === destinationListId) {
+      let cards = await Card.find({ listId: sourceListId })
         .sort({ order: 1 })
         .session(session);
- 
-        //update card before inserting
-        card.listId=destinationListId;
-        destinationCard.splice(newPosition,0,card);
 
+      cards = cards.filter((item) => item._id.toString() !== card._id.toString());
 
-      for (let i = 0; i < destinationCard.length; i++) {
-        destinationCard[i].order = (i + 1) * 100;
-        await destinationCard[i].save({ session });
+      if (parsedPosition > cards.length) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          success: false,
+          message: "Invalid new position"
+        });
       }
-      updateCard=destinationCard
-        }
-  await session.commitTransaction();
-    session.endSession();
 
-    res.status(200).json({
-        status:true,
-        message:"moving card successful",
-        updateCard
-    })
-       
-    } catch (error) {
-         res.status(500).json({
-        status:false,
-        message:"moving card failed server problem",
-        error:error.message
-        
-    })
+      cards.splice(parsedPosition, 0, card);
+
+      for (let i = 0; i < cards.length; i++) {
+        cards[i].order = (i + 1) * 100;
+        await cards[i].save({ session });
+      }
+
+      updatedCards = cards;
+    } else {
+      let sourceCards = await Card.find({ listId: sourceListId })
+        .sort({ order: 1 })
+        .session(session);
+
+      sourceCards = sourceCards.filter(
+        (item) => item._id.toString() !== card._id.toString()
+      );
+
+      for (let i = 0; i < sourceCards.length; i++) {
+        sourceCards[i].order = (i + 1) * 100;
+        await sourceCards[i].save({ session });
+      }
+
+      let destinationCards = await Card.find({ listId: destinationListId })
+        .sort({ order: 1 })
+        .session(session);
+
+      if (parsedPosition > destinationCards.length) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          success: false,
+          message: "Invalid new position"
+        });
+      }
+
+      card.listId = destinationListId;
+      destinationCards.splice(parsedPosition, 0, card);
+
+      for (let i = 0; i < destinationCards.length; i++) {
+        destinationCards[i].order = (i + 1) * 100;
+        await destinationCards[i].save({ session });
+      }
+
+      updatedCards = destinationCards;
     }
-}
+
+    await session.commitTransaction();
+
+    return res.status(200).json({
+      success: true,
+      message: "Card moved successfully",
+      updatedCards
+    });
+  } catch (error) {
+    await session.abortTransaction();
+
+    return res.status(500).json({
+      success: false,
+      message: "Card move failed",
+      error: error.message
+    });
+  } finally {
+    session.endSession();
+  }
+};
 
 export {createCard,getAllCard,updateCard,deleteCard,moveCard}

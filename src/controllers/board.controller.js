@@ -2,27 +2,22 @@ import Board from "../models/Board.model.js";
 
 const createBoard=async(req,res)=>{
        const {title}=req.body;
-    if(!title){
+       const trimtitle=title.trim();
+    if(!trimtitle){
         return res.status(400).json({
             success:false,
             message:" title is requied"
         })
     }
         const {id:userId} =req.user; //dont use _id because in middleware we use id in the user object
-        console.log("user :",userId)
-        if(!userId){
-            return res.status(400).json({
-            success:false,
-            message:"user not found"
-        }) 
-        }
+        
     try {
         const board= await Board.create({
-        title,
+        trimtitle,
         owner:userId
         })
        
-        res.status(201).json({
+        res.status(200).json({
             success:true,
             message:"board creation successful",
             board
@@ -32,7 +27,7 @@ const createBoard=async(req,res)=>{
         res.status(500).json({
             success:false,
             message:"board creation failed",
-            error
+            error:error.message
         })
     }
 };
@@ -46,13 +41,7 @@ const getAllBoard=async(req,res)=>{
         ]
     }).populate("owner", "name email");
 
-        if(!boards){
-          return  res.status(400).json({
-            status:false,
-            message:"No board found"
-          })
-        }
-        res.status(201).json({
+        res.status(200).json({
             status:true,
             message:"all board found", 
             boards
@@ -60,21 +49,16 @@ const getAllBoard=async(req,res)=>{
         })
     } catch (error) {
          res.status(500).json({
-            success:false,
+            status:false,
             message:"error fetching boards",
-            error
+            error:error.message
         })
     }
 };
 const getSingleBoard=async(req,res)=>{
     try {
-        const {boardId}=req.params;//this is comiong from url
-        const {id:userId}=req.user;
-        const board=await Board.findOne({
-            _id:boardId,
-            $or:[
-                {owner:userId
-        },{ members:userId}]})
+        
+        const board=await Board.findById(req.board._id)
         .populate("owner", "name email")
         .populate("members", "name email");
         if(!board){
@@ -83,8 +67,8 @@ const getSingleBoard=async(req,res)=>{
                 message:"board not found",
             })
         }
-        res.status(201).json({
-            status:true,
+        res.status(200).json({
+            success:true,
             message:"board fetching successful",
             board
         })
@@ -92,93 +76,68 @@ const getSingleBoard=async(req,res)=>{
        res.status(500).json({
             success:false,
             message:"error fetching boards",
-            error
+            error:error.message
         })  
     }
 };
 const deleteBoard=async(req,res)=>{
         try {
-        const {boardId}=req.params;
-        const {id:userId} = req.user;
-        
-        const board=await Board.findOneAndDelete({
-            _id:boardId,
-            owner:userId
-        })
+        const board=await Board.findByIdAndDelete(req.board._id)
         if(!board){
-            return res.status(400).json({
-                status:false,
+            return res.status(404).json({
+                success:false,
                 message:"board not found",
             })
         }
-        res.status(201).json({
-            status:true,
-            message:"Delete board successful",
-            board
+        res.status(200).json({
+            success:true,
+            message:"Board deleted successfully",
         })
     } catch (error) {
        res.status(500).json({
             success:false,
             message:"error deleting boards",
-            error
+            error:error.message
         })  
     }
 };
 const addMember=async(req,res)=>{
-const {boardId}=req.params;
 const {memberId}=req.body;
-const {id:userId}=req.user;
+const board=req.board;
 
 if(!memberId){
     return res.status(400).json({
-        status:false,
+        success:false,
         message:"required all fields"
     })
 }
 try {
-    const board=await Board.findById(boardId);
-   
-    if(!board){
-        return res.status(400).json({
-            success:false,
-            message:"Board not found or access denied"
-        })
-    }
-     if(board.owner.toString()===memberId){
+     if(board.owner.toString()===memberId.toString()){
           return res.status(400).json({
-            status:false,
-            message:"cannot add owner in member array"
-        })
-    }
-    
-    if(board.owner.toString()!==userId){
-    return res.status(400).json({
             success:false,
-            message:"unauthorized"
+            message:"Owner cannot be added as a member"
         })
     }
-    const matched = board.members.some(
-  member => member.toString() === memberId
-);
+   
+    const alreadyMember = board.members.some(
+  member => member.toString() === memberId.toString());
     
-    if(matched){
+    if(alreadyMember){
            return res.status(400).json({
             success:false,
-            message:"member already exist"
+            message:"Member already exist"
         })
     }
-     const updatedBoard = await Board.findByIdAndUpdate(
-  boardId,
-  {
-    $addToSet: { members: memberId }  
-  },
-  {returnDocument: "after" }
-);
+     board.members.push(memberId);
+     await board.save();
 
-await updatedBoard.save();
-res.status(201).json({
+      const updatedBoard = await Board.findById(board._id)
+      .populate("owner", "name email")
+      .populate("members", "name email");
+
+res.status(200).json({
     success:true,
-    message:"member added successfully",
+    message:"Member added successfully",
     board:updatedBoard
 })
 } catch (error) {
@@ -190,90 +149,75 @@ res.status(201).json({
 }
 };
 const removeMember=async(req,res)=>{
-const {boardId}=req.params;
 const {memberId}=req.params;
-const {id:userId}=req.user;
+const board=req.board;
 try {
-    const board=await  Board.findOne({
-        _id:boardId
-    })
-   
-    if(!board){
-        return res.status(400).json({
-            status:false,
-            message:"board not found"
-        })
-    }
-   
     if(board.owner.toString()===memberId){
           return res.status(400).json({
             status:false,
             message:"cannot remove owner"
         })
     }
-
-    if(board.owner.toString()!==userId){
-          return res.status(400).json({
-            status:false,
-            message:"unauthorized"
-        })
-    }
    
-     const matched = board.members.some(
+     const memberExists = board.members.some(
   member => member.toString() === memberId
 );
-    if(!matched){
+    if(!memberExists){
            return res.status(400).json({
             success:false,
             message:"member not found"
         })
     }
-    const member=await Board.findByIdAndUpdate(boardId,{
-        $pull:{members:memberId}
-    });
-    if(!member){
-          return res.status(400).json({
-            success:false,
-            message:"deletion failed"
-        })
-    }
+      board.members = board.members.filter(
+      (member) => member.toString() !== memberId.toString()
+    );
+
+    await board.save();
     res.status(200).json({
         success:true,
-        message:"member removed successfully"
+        message:"Member removed successfully"
     })
     
 } catch (error) {
-     res.status(400).json({
+     res.status(500).json({
         success:false,
-        message:"deletion failed"
+        message:"deletion failed",
+        error:error.message
     })
 }
 };
 const getAllMember=async(req,res)=>{
 
-const {boardId}=req.params;
-const {id:userId}=req.user;
-
-const board=await Board.findOne({
-_id:boardId,
-$or:[
-    {owner:userId},
-    {members:userId}
-]})
-.populate("owner", "name email")
-  .populate("members", "name email");
-if(!board){
-    return res.status(400).json({
-        success:false,
-        message:"board not found or access denied"
-    })
+const {boardId}=req.params; 
+try {
+    
+    const board=await Board.findOne({_id:boardId})
+    .populate("owner", "name email")
+      .populate("members", "name email");
+    if(!board){
+        return res.status(400).json({
+            success:false,
+            message:"board not found or access denied"
+        })
+    }
+    res.status(200).json({
+            success:true,
+            message:"found all members",
+            data: [
+  { role: "owner", user: board.owner },
+  ...board.members.map(m => ({
+    role: "member",
+    user: member
+  }))
+]
+        })
+} catch (error) {
+    res.status(500).json({
+            success:false,
+            message:"unable to featch all members",
+            error:error.message
+        })
 }
-res.status(200).json({
-        success:true,
-        message:"found all members",
-        owner:board.owner,
-        members:board.members
-    })
 };
 
 export {createBoard,getAllBoard,getSingleBoard,deleteBoard,addMember,removeMember,getAllMember}

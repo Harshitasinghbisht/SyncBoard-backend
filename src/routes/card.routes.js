@@ -1,15 +1,14 @@
 import express from "express";
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
-import listAccessable from "../middlewares/isListAccessable.middleware.js";
 import { createCard,getAllCard,updateCard,deleteCard,moveCard } from "../controllers/card.controller.js";
-import cardAccessable from "../middlewares/isCardAccessable.middleware.js";
+import authorizeCardAction from "../middlewares/isAuthorizeCardAction.middleware.js";
 
 const cardRouter= express.Router();
 
-cardRouter.post("/:listId",isLoggedIn,listAccessable,createCard);
-cardRouter.get("/:listId",isLoggedIn,listAccessable,getAllCard);
-cardRouter.put("/:cardId",isLoggedIn,cardAccessable,updateCard);
-cardRouter.delete("/:cardId",isLoggedIn,cardAccessable,deleteCard);
-cardRouter.put("/move/:cardId",isLoggedIn,cardAccessable,moveCard)
+cardRouter.post("/:listId/cards",isLoggedIn, authorizeListAction("createCard"),createCard);
+cardRouter.get("/:listId",isLoggedIn,authorizeListAction("viewBoard"),getAllCard);
+cardRouter.patch("/:cardId",isLoggedIn,authorizeCardAction("updateCard"),updateCard);
+cardRouter.delete("/:cardId",isLoggedIn,authorizeCardAction("deleteCard"),deleteCard);
+cardRouter.patch("/:cardId/move",isLoggedIn,authorizeCardAction("moveCard"),moveCard)
 
-export default cardRouter;
+export default cardRouter; 
