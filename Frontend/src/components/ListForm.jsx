@@ -1,15 +1,15 @@
 import { useState } from "react";
 
-function ListForm({isOpen,isClose,onCreateList}){
-    if (!isOpen) return null;
+function ListForm({isopen,isclose,onCreateList}){
+    if (!isopen) return null;
 const[title,setTitle]=useState("");
 const handleSubmit=(e)=>{
     e.preventDefault();
     if(!title.trim()) return;
         onCreateList(title);
-        isClose();
+        isclose();
         setTitle("")
-}
+} 
     return(
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-md rounded-2xl bg-[#18181b] p-6 shadow-lg">
@@ -28,7 +28,7 @@ const handleSubmit=(e)=>{
 
         <div className="mt-5 flex justify-end gap-3">
           <button
-            onClick={isClose}
+            onClick={isclose}
             className="rounded-lg px-4 py-2 text-gray-300 transition hover:bg-gray-700"
           >
             Cancel

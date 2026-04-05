@@ -4,7 +4,7 @@ import ListForm from "../components/ListForm";
 
 function Board() {
    const[openList,setopenList]=useState(false);
-   const[lists,setList]=useState([])
+   const[lists,setList]=useState([]) 
    const handleCreateList=(title)=>{
     const newList={
       id:Date.now(),
@@ -37,8 +37,8 @@ function Board() {
              <span>Create new list</span>
           </button>
           <ListForm
-          isOpen={openList}
-          isClose={()=>{setopenList(false)}}
+          isopen={openList}
+          isclose={()=>{setopenList(false)}}
           onCreateList={handleCreateList}
           />
            {lists.map((list)=>(
@@ -51,6 +51,6 @@ function Board() {
       </section> 
     </main>
   );
-}
+} 
 
 export default Board;
