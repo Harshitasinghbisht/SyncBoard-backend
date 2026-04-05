@@ -1,8 +1,22 @@
+import { useState } from "react";
 import ListContainer from "../components/ListContainer";
+import ListForm from "../components/ListForm";
 
 function Board() {
+   const[openList,setopenList]=useState(false);
+   const[lists,setList]=useState([])
+   const handleCreateList=(title)=>{
+    const newList={
+      id:Date.now(),
+     title:title,
+      cards: [],
+    }
+    setList((pre)=>[...pre , newList])
+    setopenList(false)
+   } 
   return (
-    <main className="min-h-screen bg-[#0f172a] px-5 py-5 text-white">
+    <main
+    className="min-h-screen bg-[#0f172a] px-5 py-5 text-white">
       <div className="mb-6 border-b border-gray-700 pb-4">
         <h1 className="text-xl font-semibold tracking-wide">Board</h1>
 
@@ -16,15 +30,25 @@ function Board() {
 
       <section className="overflow-x-auto pb-4">
         <div className="flex min-w-max gap-4">
-          <ListContainer />
-          <ListContainer />
-          <ListContainer />
-          <button className="flex w-72 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-600 bg-slate-800/60 px-4 py-5 text-sm font-medium text-slate-300 transition hover:border-blue-500 hover:bg-slate-800 hover:text-white">
+          <button 
+          onClick={() => setopenList(true)}
+          className="flex w-72 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-600 bg-slate-800/60 px-4 py-5 text-sm font-medium text-slate-300 transition hover:border-blue-500 hover:bg-slate-800 hover:text-white">
              <span className="text-lg leading-none">+</span>
              <span>Create new list</span>
           </button>
+          <ListForm
+          isOpen={openList}
+          isClose={()=>{setopenList(false)}}
+          onCreateList={handleCreateList}
+          />
+           {lists.map((list)=>(
+            <ListContainer key={list.id}
+            title={list.title}
+            card={list.cards}
+            />
+          ))}
         </div>
-      </section>
+      </section> 
     </main>
   );
 }
