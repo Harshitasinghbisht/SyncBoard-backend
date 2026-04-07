@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import ListCard from "./ListCard";
 import { useState } from "react";
-import CardForm from "./CardForm";
-import TaskCard from "./TaskCard";
+import CardForm from "../card/CardForm";
+import TaskCard from "../card/TaskCard";
 
 function ListContainer({title,cards=[]}) {
   const navigate=useNavigate();

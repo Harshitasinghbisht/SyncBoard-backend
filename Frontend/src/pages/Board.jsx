@@ -1,6 +1,6 @@
 import { useState } from "react";
-import ListContainer from "../components/ListContainer";
-import ListForm from "../components/ListForm";
+import ListContainer from "../components/list/ListContainer";
+import ListForm from "../components/list/ListForm";
 
 function Board() {
    const[openList,setopenList]=useState(false);

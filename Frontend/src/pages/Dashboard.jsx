@@ -1,6 +1,6 @@
-import BoardCard from "../components/BoardCard";
+import BoardCard from "../components/board/BoardCard";
 import { useState } from "react";
-import CreateBoardModel from "../components/CreateBoardModel";
+import CreateBoardModel from "../components/board/CreateBoardModel";
 import { useNavigate } from "react-router-dom";
 
 function Dashboard() {

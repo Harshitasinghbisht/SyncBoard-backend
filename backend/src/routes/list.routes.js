@@ -5,7 +5,7 @@ import authorizeListAction from "../middlewares/isAuthorizeListAction.middleware
 
 const listRouter=express.Router();
 
-boardRouter.patch("/:listId/reorder",isLoggedIn,authorizeListAction("updateList"),reOrderList);
+listRouter.patch("/:listId/reorder",isLoggedIn,authorizeListAction("updateList"),reOrderList);
 listRouter.patch("/:listId",isLoggedIn, authorizeListAction("updateList"), updateList);
 listRouter.delete("/:listId",isLoggedIn, authorizeListAction("deleteList"),deleteList);
 

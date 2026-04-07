@@ -2,6 +2,7 @@ import express from "express";
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
 import { createCard,getAllCard,updateCard,deleteCard,moveCard } from "../controllers/card.controller.js";
 import authorizeCardAction from "../middlewares/isAuthorizeCardAction.middleware.js";
+import authorizeListAction from "../middlewares/isAuthorizeListAction.middleware.js";
 
 const cardRouter= express.Router();
 

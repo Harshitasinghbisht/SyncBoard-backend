@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function CardForm({isTaskOpen,isTaskClose,onCreatedTask}){
  
@@ -14,7 +14,13 @@ function CardForm({isTaskOpen,isTaskClose,onCreatedTask}){
 
          isTaskClose(); 
   }
-  if (!isTaskOpen) return null;
+  const inputRef=useRef(null);
+  useEffect(() => {
+    if (open && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isTaskOpen]);
+   if (!isTaskOpen) return null;
     return(
       <form onSubmit={handleSubmit}>
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
@@ -24,6 +30,7 @@ function CardForm({isTaskOpen,isTaskClose,onCreatedTask}){
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-300">Task Title</label>
           <input
+            ref={inputRef}
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}

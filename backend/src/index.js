@@ -19,7 +19,7 @@ const app=express();
 app.use(cors({
     origin:process.env.BASE_URL,
     credentials:true,
-    method:['GET','POST','DELETE','OPTIONS','PUT'],
+    methods: ['GET', 'POST', 'DELETE', 'OPTIONS', 'PUT', 'PATCH'],
     allowedHeaders:['Content-Type','Authorization']
 }));   // for the cors error solution due to front end and backend located in 
 // differnt place due to which error came
