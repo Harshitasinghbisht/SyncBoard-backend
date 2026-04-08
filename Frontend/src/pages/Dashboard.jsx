@@ -25,7 +25,7 @@ const handleCreateBoard=(title)=>{
     <main 
     className="m-5 rounded-2xl border border-gray-800 bg-[#18181b] px-6 py-5 text-white">
       <div className="border-b border-gray-700 pb-3">
-        <h1 className="text-xl font-semibold tracking-wide">SyncBoard Workspace</h1>
+        <h1 className="text-sm font-medium tracking-[0.2em] text-white-400 uppercase">SyncBoard Workspace</h1>
       </div>
 
       <div className="mt-5 flex items-center justify-between">
