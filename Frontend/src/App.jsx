@@ -8,6 +8,7 @@ import ListContainer from './components/list/ListContainer';
 import Home from './pages/Home';
 import Login from './pages/Login.jsx';
 import { Outlet } from 'react-router-dom';
+import Register from './pages/Register.jsx';
 
 //login
 import { getCurrentUser } from './Thunks/authThunks.js';

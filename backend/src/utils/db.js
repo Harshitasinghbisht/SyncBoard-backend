@@ -8,7 +8,7 @@ const db=()=>{
     console.log("database is connected")
 })
 .catch((err)=>{
-    console.log("database is not connected to the sever")
+    console.log("database is not connected to the sever" ,err)
 })
 }
 

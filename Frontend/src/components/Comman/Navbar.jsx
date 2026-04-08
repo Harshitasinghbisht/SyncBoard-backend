@@ -7,7 +7,6 @@ import Theme from "./Theme.jsx";
 function Navbar() {
  const { isAuthenticated } = useSelector((state) => state.auth);
   const navigate=useNavigate();
-console.log(isAuthenticated);
   const navItem=[
     {
       name:"Home",
@@ -21,7 +20,7 @@ console.log(isAuthenticated);
     },
     {
       name:"Signup",
-      slug:"/signup",
+      slug:"/register",
       active:!isAuthenticated
     },
     {
@@ -57,7 +56,7 @@ console.log(isAuthenticated);
             />
           </svg>
 
-          <h1 className="text-lg font-semibold tracking-wide">SyncBoard</h1>
+          <h1 className="text-sm font-medium tracking-[0.2em] text-white-400 uppercase">SyncBoard</h1>
         </div>
 
         <div className="flex items-center gap-3">

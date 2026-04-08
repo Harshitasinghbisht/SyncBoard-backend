@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useDispatch , useSelector } from "react-redux";
 import { loginUser } from "../Thunks/authThunks.js";
+import {useNavigate} from "react-router-dom";
 
 function Login(){
-    const dispatch=useDispatch();
+    const dispatch=useDispatch(); 
+    const navigate=useNavigate();
     const {loading , error , isAuthenticated , user}=useSelector(
         (state)=>state.auth
     )
@@ -21,8 +23,14 @@ function Login(){
 
     const handleSubmit=(e)=>{
         e.preventDefault();
-        dispatch(loginUser(formData))
+      const result=  dispatch(loginUser(formData));
+         if (result.meta.requestStatus === "fulfilled") {
+    navigate("/dashboard");
+  } else {
+    console.log("Login failed");
+  }
     }
+    
     return(
         <form
         onSubmit={handleSubmit}

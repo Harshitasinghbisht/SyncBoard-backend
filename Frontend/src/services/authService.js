@@ -20,4 +20,9 @@ const logoutService=async()=>{
         return responce.data;
 }
 
-export {registerService,getCurrentUserService,loginService,logoutService};
+const verifyService=async(token)=>{
+        const responce=await api.get(`/verify/${token}`)
+        return responce.data;
+} 
+
+export {registerService,getCurrentUserService,loginService,logoutService,verifyService};

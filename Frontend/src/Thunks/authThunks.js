@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { loginService,logoutService, getCurrentUserService,registerService} from "../services/authService";
+import { loginService,logoutService, getCurrentUserService,registerService, verifyService} from "../services/authService";
 
-export const registerUser=createAsyncThunk("auth/registerUser",
+export const registerUser=createAsyncThunk("auth/register",
     async(userData,thunkAPI)=>{
         try {
             return await registerService(userData)
@@ -12,7 +12,7 @@ export const registerUser=createAsyncThunk("auth/registerUser",
     }
 )
 
-export const loginUser=createAsyncThunk("auth/loginUser",
+export const loginUser=createAsyncThunk("auth/login",
     async(userData,thunkAPI)=>{
         try {
           return await loginService(userData)  
@@ -34,8 +34,8 @@ export const getCurrentUser=createAsyncThunk("auth/getCurrentUser",
     }
 )
 
-export const logoutUser=createAsyncThunk("auth/logoutUser",
-    async()=>{
+export const logoutUser=createAsyncThunk("auth/logout",
+    async(thunkAPI)=>{
         try {
             return await logoutService()
         } catch (error) {
@@ -44,3 +44,14 @@ export const logoutUser=createAsyncThunk("auth/logoutUser",
         }
     }
 )
+
+export const verifyUser=createAsyncThunk("auth/verify   ",
+    async(token,thunkAPI)=>{
+        try {
+            return await verifyService(token);
+        } catch (error) {
+            return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Verification failed")
+        }
+    }
+)    

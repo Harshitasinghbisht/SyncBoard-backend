@@ -1,11 +1,14 @@
-import { useEffect } from "react";
+
 import { useDispatch } from "react-redux";
 import { logoutUser } from "../../Thunks/authThunks.js";
+import { useNavigate } from "react-router-dom";
 
 function LogoutBtn(){
+    const navigate=useNavigate();
    const dispatch=useDispatch();
     const handleLogout=()=>{
         dispatch(logoutUser());
+        navigate("/");
     }
     return(
 <button 

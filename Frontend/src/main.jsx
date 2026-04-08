@@ -11,6 +11,9 @@ import Home from "./pages/Home.jsx"
 import ListContainer from './components/list/ListContainer.jsx'
 import LogoutBtn from './components/Comman/LogoutBtn.jsx'
 import Theme from './components/Comman/Theme.jsx'
+import Register from './pages/Register.jsx'
+import Verify from './pages/Verify.jsx'
+import Login from './pages/Login.jsx'
 
 const router= createBrowserRouter([
   {path:"/",
@@ -35,6 +38,18 @@ const router= createBrowserRouter([
       {
         path:"/Theme",
         element:<Theme/>
+      },
+      {
+        path:"/register",
+        element:<Register/>
+      },
+      {
+        path:"/verify/:token",
+        element:<Verify/>
+      },
+      {
+        path:"/signin",
+        element:<Login/>
       }
     ]
   }

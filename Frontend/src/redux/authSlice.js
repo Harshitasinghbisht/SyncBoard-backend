@@ -32,7 +32,7 @@ const initialState={
             state.loading=false;
             state.user=action.payload.user;
             state.success=true;
-            state.isAuthenticated=true;
+            state.isAuthenticated=false;
         })
         .addCase(registerUser.rejected,(state,action)=>{
             state.loading=false;

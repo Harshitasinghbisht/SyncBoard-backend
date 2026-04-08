@@ -55,7 +55,21 @@ const mailOption={
    from: process.env.MAILTRAP_SENDEREMAIL,
     to:user.email,
     subject: "VERIFY YOUR EMAIL",
-    text: `click on the below link for verification ${process.env.BASE_URL}/api/v1/user/verify/${token}`   
+    html: `
+    <div style="font-family: Arial, sans-serif; padding: 20px;">
+      <h2>Verify your email</h2>
+      <p>Click the button below to verify your account:</p>
+
+      <a href="http://localhost:5173/verify/${token}" 
+         style="display:inline-block; padding:10px 20px; background:#3b82f6; color:white; text-decoration:none; border-radius:6px;">
+         Verify Email
+      </a>
+
+      <p style="margin-top:20px; font-size:12px; color:gray;">
+        If you didn’t request this, you can ignore this email.
+      </p>
+    </div>
+  `   
 }
 
    await transport.sendMail(mailOption);
@@ -143,6 +157,7 @@ res.status(201).json({
     const cookieOption={
     httpOnly:true,
     secure:false,
+    sameSite: "lax", 
     maxAge:24*60*60*1000  
     };
     res.cookie("token",token,cookieOption);
@@ -195,7 +210,7 @@ const logout=async(req,res)=>{
     res.clearCookie("token",{
        httpOnly: true,
       secure: false,       // use false in localhost if not using HTTPS
-      sameSite: "strict"
+      sameSite: "lax"
     })
     return res.status(200).json({
       message: "Logout successful",
