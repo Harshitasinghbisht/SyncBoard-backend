@@ -2,8 +2,8 @@ import Board from "../models/Board.model.js";
 
 const createBoard=async(req,res)=>{
        const {title}=req.body;
-       const trimtitle=title.trim();
-    if(!trimtitle){
+       
+    if(!title || !title.trim()){
         return res.status(400).json({
             success:false,
             message:" title is requied"
@@ -13,7 +13,7 @@ const createBoard=async(req,res)=>{
         
     try {
         const board= await Board.create({
-        trimtitle,
+        title:title.trim(),
         owner:userId
         })
        

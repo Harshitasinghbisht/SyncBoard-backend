@@ -4,7 +4,7 @@ import { hasPermission } from "../utils/Permission.js";
 const authorizeBoardAction =(action)=>{
     return async (req,res,next)=>{
         try {
-            const {boardId}=req.paramas || req.body.boardId;
+            const boardId = req.params.boardId  || req.body.boardId;
             const {id:userId}=req.user;
 
             if(!boardId){
@@ -28,7 +28,7 @@ const authorizeBoardAction =(action)=>{
                     message:"unautorized"
                 })
             }
-            res.board=board;
+            req.board=board;
             next()
         } catch (error) {
             res.status(500).json({

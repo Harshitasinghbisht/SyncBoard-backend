@@ -1,8 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ListContainer from "../components/list/ListContainer";
 import ListForm from "../components/list/ListForm";
+import { useDispatch , useSelector } from "react-redux";
+import { getSingleBoard } from "../Thunks/boardThunks.js";
+import { useParams } from "react-router-dom";
 
 function Board() {
+  const {loading , currentBoard,error}=useSelector((state)=>state.board)
+   const dispatch=useDispatch();
+   const {boardId}=useParams();
+   
+  useEffect(() => {
+    if (boardId) {
+      dispatch(getSingleBoard(boardId));
+    }
+  }, [dispatch, boardId]);
+   
    const[openList,setopenList]=useState(false);
    const[lists,setList]=useState([]) 
    const handleCreateList=(title)=>{
@@ -14,6 +27,12 @@ function Board() {
     setList((pre)=>[...pre , newList])
     setopenList(false)
    } 
+    if(loading){
+    return<h1>Loading...</h1>
+   }
+   if(error){
+    return<h1>Error : {error}</h1>
+   }
   return (
     <main
     className="min-h-screen bg-[#0f172a] px-5 py-5 text-white">
@@ -21,7 +40,7 @@ function Board() {
         <h1 className="text-xl font-semibold tracking-wide">Board</h1>
 
         <div className="mt-4">
-          <h2 className="text-2xl font-bold">Board Title</h2>
+          <h2 className="text-2xl font-bold">{currentBoard?.title}</h2>
           <p className="mt-1 text-sm text-gray-400">
             Manage your lists and track your tasks.
           </p>

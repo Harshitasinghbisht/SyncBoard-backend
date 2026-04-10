@@ -2,7 +2,7 @@ import BoardCard from "../components/board/BoardCard";
 import { useState ,useEffect} from "react";
 import CreateBoardModel from "../components/board/CreateBoardModel";
 import { useNavigate } from "react-router-dom";
-import { getAllBoard } from "../Thunks/boardThunks";
+import { createBoard, getAllBoard } from "../Thunks/boardThunks";
 import { useSelector ,useDispatch} from "react-redux";
 
 function Dashboard() {
@@ -10,27 +10,15 @@ function Dashboard() {
   const dispatch=useDispatch();
 
   const[modelOpen,setModelOpen]=useState(false);
-  const[createboards,setBoard]=useState([]);
   const navigate=useNavigate();
-  const user=useSelector((state)=>{state.auth.user})
-  if(!user){
-    console.log("user did not exist")
-  }
-
+  const user=useSelector((state)=>{return state.auth.user})
+  
   useEffect(()=>{
-    dispatch(getAllBoard)
+    dispatch(getAllBoard())
   },[dispatch])
 
 const handleCreateBoard=(title)=>{
-  const newBoard={
-    id:Date.now(),
-    title:title,
-     taskCount: 0, 
-    updatedAt: "just now",
-    status: "Active",
-  }
-
-  setBoard((pre)=>[...pre , newBoard]);
+  dispatch(createBoard({title}));
   setModelOpen(false);
 }
   return (
@@ -42,7 +30,7 @@ const handleCreateBoard=(title)=>{
 
       <div className="mt-5 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold">Hi, ${user.name}</h2>
+          <h2 className="text-2xl font-semibold">Hi, {user?.name}</h2>
           <p className="mt-1 text-sm text-gray-400">
             Manage your boards and track your work here.
           </p>
@@ -70,12 +58,9 @@ const handleCreateBoard=(title)=>{
       </div>
       
    <div className="grid grid-cols-3 gap-4 mt-6">
-        {createboards.map((board) => (
-          <BoardCard key={board.id}
-    title={board.title}
-    taskCount={board.taskCount}
-    updatedAt={board.updatedAt}
-    status={board.status} 
+        {boards.map((board) => (
+          <BoardCard key={board._id}
+          board={board}
     onClick={()=>navigate("/Board")}
     />
         ))}

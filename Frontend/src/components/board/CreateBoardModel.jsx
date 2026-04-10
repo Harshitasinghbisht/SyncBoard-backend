@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useDispatch } from "react-redux";
+import { createBoard } from "../../Thunks/boardThunks";
 
 function CreateBoardModel({isOpen,isClose,onCreateBoard}){
-
+    
      if (!isOpen) return null;
-
+     const dispatch=useDispatch();
      const[title,setTitle]=useState("");
      const reference=useRef(null);
      useEffect(()=>{
@@ -11,13 +13,16 @@ function CreateBoardModel({isOpen,isClose,onCreateBoard}){
         reference.current.focus();
       }
      })
-     const handleSubmit=()=>{
-        if(!title.trim()) return;
-        onCreateBoard(title);
-        isClose();
+     
+     const handleFormSubmit=(e)=>{
+      e.preventDefault();
+      if(!title.trim())return;
+      dispatch(createBoard({title}));
+       isClose();
         setTitle("") 
      }
     return(
+      <form onSubmit={handleFormSubmit}>
       <div className="fixed inset-0 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-md rounded-2xl bg-[#18181b] p-6 shadow-lg">
         <h2 className="mb-4 text-xl font-semibold text-white">Create New Board</h2>
@@ -43,7 +48,7 @@ function CreateBoardModel({isOpen,isClose,onCreateBoard}){
           </button>
 
           <button
-            onClick={handleSubmit}
+            type="submit"
             className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700 active:scale-95"
           >
             Create Board
@@ -51,6 +56,7 @@ function CreateBoardModel({isOpen,isClose,onCreateBoard}){
         </div>
       </div>
     </div>
+    </form>
     )
 }
 export default CreateBoardModel;

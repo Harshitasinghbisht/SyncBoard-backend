@@ -98,7 +98,7 @@ const boardSlice=createSlice({
         .addCase(getSingleBoard.fulfilled,(state,action)=>{
                 state.loading=false,
                 state.createSuccess=true,
-                state.currentBoard=action.payload.currentBoard
+                state.currentBoard=action.payload.board
         })
         .addCase(getSingleBoard.rejected,(state,action)=>{
                  state.loading=false,

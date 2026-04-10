@@ -24,9 +24,9 @@ export const getAllBoard=createAsyncThunk("board/getAllBoard",
 )
 
 export const getSingleBoard=createAsyncThunk("board/getSingleBoard",
-    async(boardId)=>{
+    async(boardId,thunkAPI)=>{
         try {
-            return await getSingleBoard(boardId);
+            return await getSingleBoardService(boardId);
         } catch (error) {
             return thunkAPI.rejectWithValue(
         error.response?.data?.message || "Failed featching single board")
@@ -35,7 +35,7 @@ export const getSingleBoard=createAsyncThunk("board/getSingleBoard",
 )
 
 export const deleteBoard=createAsyncThunk("board/deleteBoard",
-    async(boardId)=>{
+    async(boardId,thunkAPI)=>{
         try {
             return await deleteBoardService(boardId);
         } catch (error) {
