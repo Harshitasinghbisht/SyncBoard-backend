@@ -84,7 +84,7 @@ const initialState={
         .addCase(logoutUser.pending,(state)=>{
             state.loading=true;
         })
-        .addCase(logoutUser.fulfilled,(state,action)=>{
+        .addCase(logoutUser.fulfilled,(state)=>{
             state.user=null;
             state.loading=false;
             state.success=true;

@@ -76,7 +76,8 @@ const mailOption={
 
  res.status(201).json({
   message:"User register succesfully",
-  success:true
+  success:true,
+  user
  })
 } catch (error) {
     res.status(400).json({
