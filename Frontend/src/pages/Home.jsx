@@ -34,7 +34,7 @@ function Home() {
               </Link>
 
               <Link
-                to="/login"
+                to="/signin"
                 className="rounded-xl border border-slate-700 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-900"
               >
                 Sign In
@@ -242,7 +242,7 @@ function Home() {
               </Link>
 
               <Link
-                to="/login"
+                to="/signin"
                 className="rounded-xl border border-slate-700 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-900"
               >
                 Login

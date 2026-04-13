@@ -2,10 +2,9 @@ import List from "../models/List.model.js";
 
 const createList=async(req,res)=>{
  const {title}=req.body;
- const board=req.board
+ const board=req.board;
 
- const trimTitle=title?.trim();
- if(!trimTitle){
+ if(!title || !title.trim()){
     return res.status(400).json({
         success:false,
         message:"All fields are required"
@@ -22,7 +21,7 @@ const lastList = await List.findOne({board:board._id})
 
 const newOrder = lastList ? lastList.order + 100 : 0;
 const list=await List.create({
-    trimTitle,
+    title:title.trim(),
     board:board._id,
     order:newOrder
 })
@@ -83,7 +82,8 @@ try {
     await list.deleteOne();
     res.status(200).json({
         success:true,
-        message:"list deleted successfully"
+        message:"list deleted successfully",
+        listId:list._id
     })
     
 } catch (error) {
@@ -91,6 +91,7 @@ try {
         success:false,
         message:"list delete failed server error",
         error:error.message
+       
     })
 }
 };

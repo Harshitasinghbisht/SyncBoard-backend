@@ -156,6 +156,7 @@ const boardSlice=createSlice({
         })
     }
 })
+//add delete board to the ui
 //add the update success in slice and in backend add update controller and router
  export default boardSlice.reducer;
  export const{clearError,clearCreateSuccess,clearAddmemberSuccess,clearDeleteSuccess,clearremovememberSuccess}=boardSlice.actions;

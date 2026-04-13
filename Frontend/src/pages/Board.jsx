@@ -4,28 +4,26 @@ import ListForm from "../components/list/ListForm";
 import { useDispatch , useSelector } from "react-redux";
 import { getSingleBoard } from "../Thunks/boardThunks.js";
 import { useParams } from "react-router-dom";
+import {createList,getAllList} from "../Thunks/listThunks.js"
 
 function Board() {
-  const {loading , currentBoard,error}=useSelector((state)=>state.board)
+  const {loading , currentBoard,error}=useSelector((state)=>state.board);
    const dispatch=useDispatch();
    const {boardId}=useParams();
    
   useEffect(() => {
     if (boardId) {
       dispatch(getSingleBoard(boardId));
+      dispatch(getAllList(boardId));
     }
   }, [dispatch, boardId]);
-   
+    const {lists}=useSelector((state)=>state.list);
    const[openList,setopenList]=useState(false);
-   const[lists,setList]=useState([]) 
+   
    const handleCreateList=(title)=>{
-    const newList={
-      id:Date.now(),
-     title:title,
-      cards: [],
-    }
-    setList((pre)=>[...pre , newList])
-    setopenList(false)
+    console.log(boardId)
+    dispatch(createList({boardId,title}));
+    setopenList(false);
    } 
     if(loading){
     return<h1>Loading...</h1>
@@ -34,7 +32,7 @@ function Board() {
     return<h1>Error : {error}</h1>
    }
   return (
-    <main
+    <main 
     className="min-h-screen bg-[#0f172a] px-5 py-5 text-white">
       <div className="mb-6 border-b border-gray-700 pb-4">
         <h1 className="text-xl font-semibold tracking-wide">Board</h1>
@@ -47,8 +45,8 @@ function Board() {
         </div>
       </div>
 
-      <section className="overflow-x-auto pb-4">
-        <div className="flex min-w-max gap-4">
+      <section className="pb-4">
+        <div className="flex flex-wrap gap-4">
           <button 
           onClick={() => setopenList(true)}
           className="flex w-72 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-600 bg-slate-800/60 px-4 py-5 text-sm font-medium text-slate-300 transition hover:border-blue-500 hover:bg-slate-800 hover:text-white">
@@ -61,9 +59,10 @@ function Board() {
           onCreateList={handleCreateList}
           />
            {lists.map((list)=>(
-            <ListContainer key={list.id}
+            <ListContainer key={list._id}
             title={list.title}
             card={list.cards}
+            list={list}
             />
           ))}
         </div>
@@ -71,5 +70,5 @@ function Board() {
     </main>
   );
 } 
-
+// make flow from the component to dispatchng thunks and throung thunk call service  and then to backend
 export default Board;

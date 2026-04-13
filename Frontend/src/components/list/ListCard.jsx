@@ -9,7 +9,7 @@ function ListCard({title}){
           <p className="mt-2 text-sm text-gray-400">
             {title} 
           </p> 
-        </div>
+        </div> 
         
         <div className="mt-6 flex items-center justify-between">
           <span className="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-400">
@@ -18,7 +18,7 @@ function ListCard({title}){
           <span className="text-sm text-gray-500">Open</span>
         </div>
       </div>
-    </div>
+    </div> 
     )
 }
 
