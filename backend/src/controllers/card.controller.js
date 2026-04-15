@@ -22,8 +22,8 @@ const createCard=async(req,res)=>{
      const newOrder = lastCard ? lastCard.order + 100 : 0;
 
      const card=await Card.create({
-        trimTitle,
-        trimDescription,
+         title: trimTitle,
+        description: trimDescription,
         boardId:board._id,
         listId:list._id,
         order:newOrder,
@@ -68,7 +68,6 @@ const updateCard=async(req,res)=>{
     const {title,description}=req.body;
     const card=req.card;
 
-
   const trimmedTitle = title?.trim();
   const trimmedDescription = description?.trim();
 
@@ -93,6 +92,7 @@ const updateCard=async(req,res)=>{
   }
 
     try {
+      
         await card.save();
 
         res.status(200).json({

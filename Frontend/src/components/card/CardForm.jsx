@@ -29,7 +29,7 @@ function CardForm({isTaskOpen,isTaskClose,onCreatedTask}){
 
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-300">Task Title</label>
-          <input
+          <input 
             ref={inputRef}
             type="text"
             value={title}
