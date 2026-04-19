@@ -10,6 +10,9 @@ boardRouter.post("/",isLoggedIn,createBoard);
 boardRouter.get("/",isLoggedIn,getAllBoard);
 boardRouter.get("/:boardId",isLoggedIn,authorizeBoardAction("viewBoard"),getSingleBoard);
 boardRouter.delete("/:boardId",isLoggedIn,authorizeBoardAction("deleteBoard"),deleteBoard);
+
+//router for the members
+
 boardRouter.post("/:boardId/members",isLoggedIn,authorizeBoardAction("inviteMember"),addMember);
 boardRouter.delete("/:boardId/members/:memberId",isLoggedIn,authorizeBoardAction("removeMember"),removeMember);
 boardRouter.get("/:boardId/members",isLoggedIn,authorizeBoardAction("viewBoard"),getAllMember)

@@ -1,7 +1,7 @@
 import { useDispatch , useSelector } from "react-redux";
-import { deleteCard, updateCard } from "../../Thunks/cardThunks.js";
+import { deleteCard, moveCard, updateCard } from "../../Thunks/cardThunks.js";
 import { useState } from "react";
-function TaskCard({ card }) {
+function TaskCard({ card ,nextListId }) {
   const {loading ,error}=useSelector((state)=>state.card);
   const [isEditing ,setIsEditing]=useState(false);
   const [editTitle, setEditTitle]=useState(card.title);
@@ -25,6 +25,14 @@ const handleCancle=()=>{
   setEditTitle(card.title);
   setEditDescription(card.description);
   setIsEditing(false);
+}
+const handleMove=()=>{
+  const moveData={
+    sourceListId:card.listId,
+    destinationListId:nextListId,
+    newPosition:0
+  }
+  dispatch(moveCard({cardId:card._id,moveData}))
 }
   if(loading){
     return <h1>Loading...</h1>
@@ -64,7 +72,10 @@ const handleCancle=()=>{
       className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/20 hover:text-red-200 mr-2 mt-2"
       onClick={handleDelete}
       >delete</button>
-
+      <button
+          className="rounded-lg border bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm font-medium text-slate-200 transition  hover:text-white"
+          onClick={handleMove} disabled={!nextListId}
+          > {nextListId ? "Move Next" : "Last List"}</button>
     </div>
     )
   }

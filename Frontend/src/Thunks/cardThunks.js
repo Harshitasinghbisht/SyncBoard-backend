@@ -53,9 +53,9 @@ export const deleteCard=createAsyncThunk("card/deleteCard",
 )
 
 export const moveCard=createAsyncThunk("card/moveCard",
-    async(cardData,thunkAPI)=>{
+    async({cardId,moveData},thunkAPI)=>{
         try {
-            return await moveCardService(cardData.cardId);
+            return await moveCardService(cardId,moveData);
         } catch (error) {
             return thunkAPI.rejectWithValue(
         error.response?.data?.message || "moving card failed")

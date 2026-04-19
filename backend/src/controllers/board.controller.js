@@ -1,4 +1,5 @@
 import Board from "../models/Board.model.js";
+import User from "../models/User.model.js";
 
 const createBoard=async(req,res)=>{
        const {title}=req.body;
@@ -102,16 +103,26 @@ const deleteBoard=async(req,res)=>{
     }
 };
 const addMember=async(req,res)=>{
-const {memberId}=req.body;
+const {email}=req.body;
 const board=req.board;
 
-if(!memberId){
+if(!email){
     return res.status(400).json({
         success:false,
-        message:"required all fields"
+        message:"required  email"
     })
 }
 try {
+    console.log("Incoming email:", email);
+    console.log("Board from middleware:", board?._id);
+    const user = await User.findOne({ email });
+    if(!user){
+        return res.status(404).json({
+            success:false,
+            message:"Email not found"
+        })
+    }
+     const memberId = user._id;
      if(board.owner.toString()===memberId.toString()){
           return res.status(400).json({
             success:false,
@@ -134,6 +145,7 @@ try {
       const updatedBoard = await Board.findById(board._id)
       .populate("owner", "name email")
       .populate("members", "name email");
+      console.log(updatedBoard)
 
 res.status(200).json({
     success:true,
@@ -141,6 +153,7 @@ res.status(200).json({
     board:updatedBoard
 })
 } catch (error) {
+    console.log("Add member controller error:", error);
     res.status(500).json({
     success:false,
     message:"member not added",
@@ -154,7 +167,7 @@ const board=req.board;
 try {
     if(board.owner.toString()===memberId){
           return res.status(400).json({
-            status:false,
+            success:false,
             message:"cannot remove owner"
         })
     }
@@ -171,11 +184,16 @@ try {
       board.members = board.members.filter(
       (member) => member.toString() !== memberId.toString()
     );
-
     await board.save();
+const updatedBoard = await Board.findById(board._id)
+      .populate("owner", "name email")
+      .populate("members", "name email");
+    
+    console.log("updatedBoard members:", updatedBoard.members);
     res.status(200).json({
         success:true,
-        message:"Member removed successfully"
+        message:"Member removed successfully",
+        board:updatedBoard
     })
     
 } catch (error) {

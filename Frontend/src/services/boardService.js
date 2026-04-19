@@ -20,8 +20,11 @@ const deleteBoardService=async(boardId)=>{
     return boardId;
 }
 
-const addMemberService=async(boardId,userData)=>{
-    const res=await api.post(`/boards/${boardId}/members`,userData);
+//members services
+
+const addMemberService=async(boardId,data)=>{
+    console.log(data.email);
+    const res=await api.post(`/boards/${boardId}/members`,data);
     return res.data;
 }
 const removeMemberService=async(boardId,memberId)=>{

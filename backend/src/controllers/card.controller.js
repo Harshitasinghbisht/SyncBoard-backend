@@ -244,7 +244,7 @@ const moveCard = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Card moved successfully",
-      updatedCards
+      cards:updatedCards
     });
   } catch (error) {
     await session.abortTransaction();

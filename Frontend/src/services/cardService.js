@@ -20,8 +20,8 @@ const deleteCardService=async(cardId)=>{
     return res.data;
 }
 
-const moveCardService=async (cardId)=>{
-      const res=await api.patch(`/cards/${cardId}/move`);
+const moveCardService=async (cardId,moveData)=>{
+      const res=await api.patch(`/cards/${cardId}/move`,moveData);
       return res.data;
 }
 

@@ -112,10 +112,9 @@ const boardSlice=createSlice({
                  state.addMemberSuccess=false
         })
         .addCase(addMember.fulfilled,(state,action)=>{
-             state.loading=false,
-             state.currentBoard = action.payload.board,
-             state.members = action.payload.board.members,
-             state.addMemberSuccess=true
+             state.loading=false;
+             state.currentBoard = action.payload?.board || null;
+             state.addMemberSuccess=true;
 
         })
         .addCase(addMember.rejected,(state,action)=>{
@@ -130,10 +129,11 @@ const boardSlice=createSlice({
                 state.loading=true,
                 state.removeMemberSuccess=false
         })
-        .addCase(removeMember.fulfilled,(state,action)=>{
-            state.loading=false,
-            state.members= state.members.filter( (member) => member._id !== action.payload),
-            state.removeMemberSuccess=true
+       .addCase(removeMember.fulfilled, (state, action) => {
+                 state.loading = false;
+                 state.error = null;
+                 state.removeMemberSuccess = true;
+                 state.currentBoard = action.payload.board;
         })
         .addCase(removeMember.rejected,(state,action)=>{
                  state.loading=false,
@@ -143,16 +143,17 @@ const boardSlice=createSlice({
 
         //get all member
         .addCase(getAllMember.pending,(state)=>{
-                state.loading=true
+                state.loading=true;
         })
         .addCase(getAllMember.fulfilled,(state,action)=>{
-            state.loading=false,
-            state.members=action.payload.data
+            state.loading=false;
+            state.error=null;
+            state.members = action.payload.data;
         })
         .addCase(getAllMember.rejected,(state,action)=>{
-                 state.loading=false,
-                 state.createSuccess=false,
-                 state.error=action.payload
+                 state.loading=false;
+                 state.createSuccess=false;
+                 state.error=action.payload;
         })
     }
 })

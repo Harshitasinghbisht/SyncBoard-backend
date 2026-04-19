@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import ListContainer from "../components/list/ListContainer";
 import ListForm from "../components/list/ListForm";
 import { useDispatch , useSelector } from "react-redux";
-import { getSingleBoard } from "../Thunks/boardThunks.js";
+import { getAllMember, getSingleBoard } from "../Thunks/boardThunks.js";
 import { useParams } from "react-router-dom";
 import {createList,getAllList} from "../Thunks/listThunks.js"
+import BoardMemberSection from "../components/member/BoardMemberSection.jsx";
 
 function Board() {
   const {loading , currentBoard,error}=useSelector((state)=>state.board);
@@ -44,7 +45,10 @@ function Board() {
           </p>
         </div>
       </div>
-
+     {/* Members Section */}
+         <section className="mb-8">
+        <BoardMemberSection boardId={boardId} />
+      </section>
       <section className="pb-4">
         <div className="flex flex-wrap gap-4">
           <button 
@@ -63,6 +67,7 @@ function Board() {
             title={list.title}
             card={list.cards}
             list={list}
+            lists={lists}
             />
           ))}
         </div>

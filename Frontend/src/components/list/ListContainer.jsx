@@ -6,7 +6,7 @@ import { useDispatch , useSelector } from "react-redux";
 import { deleteList, updateList } from "../../Thunks/listThunks.js";
 import { createCard , getAllCard } from "../../Thunks/cardThunks.js";
 
-function ListContainer({list}) {
+function ListContainer({list,card=[],lists=[]}) {
   const[taskOpen,setTaskOpen]=useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(list.title);
@@ -16,6 +16,14 @@ function ListContainer({list}) {
   const {cardsByList}=useSelector((state)=>state.card);
   const listId=list._id;
   const listCards = cardsByList[listId] || [];
+
+ const currentIndex = lists.findIndex(
+  (item) => item._id?.toString() === list._id?.toString()
+);
+
+const nextList = currentIndex !== -1 ? lists[currentIndex + 1] : null;
+const nextListId = nextList ? nextList._id : null;
+
   useEffect(() => {
   if (listId) {
     dispatch(getAllCard(listId));
@@ -43,6 +51,8 @@ const handleSave = () => {
   dispatch(updateList({ listId: list._id, title: editTitle }));
   setIsEditing(false);
 };
+
+
   
   if(loading){
     return<h1>Loading...</h1>
@@ -62,6 +72,7 @@ const handleSave = () => {
     <TaskCard
       key={task._id}
      card={task}
+     nextListId={nextListId}
     />
   ))}
 </div> 

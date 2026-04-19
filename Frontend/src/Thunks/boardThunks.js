@@ -45,10 +45,13 @@ export const deleteBoard=createAsyncThunk("board/deleteBoard",
     }
 )
 
+//members thunk
+
 export const addMember=createAsyncThunk("board/addMember",
-    async(boardId,userData)=>{
+    async({ boardId, email },thunkAPI)=>{
+        console.log({ boardId, email })
         try {
-            return await addMemberService(boardId,userData)
+            return await addMemberService(boardId, { email })
         } catch (error) {
             return thunkAPI.rejectWithValue(
         error.response?.data?.message || "Unable to add member")
@@ -56,9 +59,9 @@ export const addMember=createAsyncThunk("board/addMember",
     }
 )
 export const removeMember=createAsyncThunk("board/removeMember",
-    async(boardId,memberId)=>{
+    async({boardId,memberId},thunkAPI)=>{
         try {
-            return await addMemberService(boardId,memberId)
+            return await removeMemberService(boardId,memberId)
         } catch (error) {
             return thunkAPI.rejectWithValue(
         error.response?.data?.message || "Unable to remove member")
@@ -67,7 +70,7 @@ export const removeMember=createAsyncThunk("board/removeMember",
 )
 
 export const getAllMember=createAsyncThunk("board/getAllMember",
-    async(boardId)=>{
+    async(boardId,thunkAPI)=>{
         try {
             return await getAllBoardService(boardId);
         } catch (error) {

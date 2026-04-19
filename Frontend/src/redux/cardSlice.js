@@ -114,12 +114,24 @@ const cardSlice=createSlice({
             state.loading=true;
             state.success=false;
         })
-        .addCase(moveCard.fulfilled,(state,action)=>{
-            state.loading = false;
-            state.cards = action.payload.cards;
-            state.success = true;
-            state.actionType="Card updated"
-        })
+        .addCase(moveCard.fulfilled, (state, action) => {
+               state.loading = false;
+               state.success = true;
+             
+               const updatedDestinationCards = action.payload.cards;
+               const { sourceListId, destinationListId } = action.meta.arg.moveData;
+               const movedCardId = action.meta.arg.cardId;
+             
+               const sourceCards = state.cardsByList[sourceListId] || [];
+             
+               state.cardsByList[sourceListId] = sourceCards.filter(
+                 (card) => card._id !== movedCardId
+               );
+             
+               state.cardsByList[destinationListId] = updatedDestinationCards;
+             
+               state.actionType = "Card moved";
+})
         .addCase(moveCard.rejected,(state,action)=>{
             state.loading=false;
             state.success=false;
