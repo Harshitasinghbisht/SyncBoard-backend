@@ -1,6 +1,9 @@
 import { useDispatch , useSelector } from "react-redux";
 import { deleteCard, moveCard, updateCard } from "../../Thunks/cardThunks.js";
 import { useState } from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
 function TaskCard({ card ,nextListId }) {
   const {loading ,error}=useSelector((state)=>state.card);
   const [isEditing ,setIsEditing]=useState(false);
@@ -26,14 +29,27 @@ const handleCancle=()=>{
   setEditDescription(card.description);
   setIsEditing(false);
 }
-const handleMove=()=>{
-  const moveData={
-    sourceListId:card.listId,
-    destinationListId:nextListId,
-    newPosition:0
-  }
-  dispatch(moveCard({cardId:card._id,moveData}))
-}
+//const handleMove=()=>{
+  //const moveData={
+    //sourceListId:card.listId,
+    //destinationListId:nextListId,
+    //newPosition:0
+  //}
+  //dispatch(moveCard({cardId:card._id,moveData}))
+//}
+
+//droppable logic
+const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,}=useSortable({id:card._id})
+ 
+   const style = {
+  transform: transform ? CSS.Transform.toString(transform) : undefined,
+  transition,
+};
   if(loading){
     return <h1>Loading...</h1>
   }
@@ -42,7 +58,12 @@ const handleMove=()=>{
   }
   if(!isEditing){
     return(
-      <div className="rounded-xl bg-slate-800 p-3 shadow-sm border border-slate-700 hover:border-blue-500 transition hover:shadow-md cursor-pointer">
+      <div 
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className="rounded-xl bg-slate-800 p-3 shadow-sm border border-slate-700 hover:border-blue-500 hover:shadow-md cursor-pointer">
       <h3 className="text-sm font-semibold text-white">
         {card.title}
       </h3>
@@ -72,10 +93,10 @@ const handleMove=()=>{
       className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/20 hover:text-red-200 mr-2 mt-2"
       onClick={handleDelete}
       >delete</button>
-      <button
+      {/*<button
           className="rounded-lg border bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm font-medium text-slate-200 transition  hover:text-white"
           onClick={handleMove} disabled={!nextListId}
-          > {nextListId ? "Move Next" : "Last List"}</button>
+          > {nextListId ? "Move Next" : "Last List"}</button>*/}
     </div>
     )
   }

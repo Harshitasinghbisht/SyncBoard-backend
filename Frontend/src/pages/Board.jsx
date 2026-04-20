@@ -7,6 +7,7 @@ import { useParams } from "react-router-dom";
 import {createList,getAllList} from "../Thunks/listThunks.js"
 import BoardMemberSection from "../components/member/BoardMemberSection.jsx";
 
+
 function Board() {
   const {loading , currentBoard,error}=useSelector((state)=>state.board);
    const dispatch=useDispatch();
@@ -17,6 +18,7 @@ function Board() {
       dispatch(getSingleBoard(boardId));
       dispatch(getAllList(boardId));
     }
+
   }, [dispatch, boardId]);
     const {lists}=useSelector((state)=>state.list);
    const[openList,setopenList]=useState(false);
@@ -26,6 +28,7 @@ function Board() {
     dispatch(createList({boardId,title}));
     setopenList(false);
    } 
+
     if(loading){
     return<h1>Loading...</h1>
    }
@@ -37,7 +40,6 @@ function Board() {
     className="min-h-screen bg-[#0f172a] px-5 py-5 text-white">
       <div className="mb-6 border-b border-gray-700 pb-4">
         <h1 className="text-xl font-semibold tracking-wide">Board</h1>
-
         <div className="mt-4">
           <h2 className="text-2xl font-bold">{currentBoard?.title}</h2>
           <p className="mt-1 text-sm text-gray-400">
@@ -74,6 +76,6 @@ function Board() {
       </section> 
     </main>
   );
-} 
+}
 // make flow from the component to dispatchng thunks and throung thunk call service  and then to backend
 export default Board;
