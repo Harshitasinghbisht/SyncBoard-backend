@@ -155,10 +155,15 @@ const moveCard = async (req, res) => {
       });
     }
 
+    await session.startTransaction();
+
     const sourceList = await List.findById(sourceListId).session(session);
     const destinationList = await List.findById(destinationListId).session(session);
 
     if (!sourceList || !destinationList) {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+      }
       return res.status(404).json({
         success: false,
         message: "Source or destination list not found"
@@ -169,17 +174,16 @@ const moveCard = async (req, res) => {
       sourceList.board.toString() !== board._id.toString() ||
       destinationList.board.toString() !== board._id.toString()
     ) {
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+      }
       return res.status(400).json({
         success: false,
         message: "Lists do not belong to the same board"
       });
     }
 
-    await session.startTransaction();
-
-    let updatedCards = [];
-
-    if (sourceListId === destinationListId) {
+    if (sourceListId.toString() === destinationListId.toString()) {
       let cards = await Card.find({ listId: sourceListId })
         .sort({ order: 1 })
         .session(session);
@@ -187,7 +191,9 @@ const moveCard = async (req, res) => {
       cards = cards.filter((item) => item._id.toString() !== card._id.toString());
 
       if (parsedPosition > cards.length) {
-        await session.abortTransaction();
+        if (session.inTransaction()) {
+          await session.abortTransaction();
+        }
         return res.status(400).json({
           success: false,
           message: "Invalid new position"
@@ -201,7 +207,14 @@ const moveCard = async (req, res) => {
         await cards[i].save({ session });
       }
 
-      updatedCards = cards;
+      await session.commitTransaction();
+
+      return res.status(200).json({
+        success: true,
+        message: "Card reordered successfully",
+        sourceListId,
+        cards
+      });
     } else {
       let sourceCards = await Card.find({ listId: sourceListId })
         .sort({ order: 1 })
@@ -221,7 +234,9 @@ const moveCard = async (req, res) => {
         .session(session);
 
       if (parsedPosition > destinationCards.length) {
-        await session.abortTransaction();
+        if (session.inTransaction()) {
+          await session.abortTransaction();
+        }
         return res.status(400).json({
           success: false,
           message: "Invalid new position"
@@ -236,18 +251,21 @@ const moveCard = async (req, res) => {
         await destinationCards[i].save({ session });
       }
 
-      updatedCards = destinationCards;
+      await session.commitTransaction();
+
+      return res.status(200).json({
+        success: true,
+        message: "Card moved successfully",
+        sourceListId,
+        destinationListId,
+        sourceCards,
+        destinationCards
+      });
     }
-
-    await session.commitTransaction();
-
-    return res.status(200).json({
-      success: true,
-      message: "Card moved successfully",
-      cards:updatedCards
-    });
   } catch (error) {
-    await session.abortTransaction();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
 
     return res.status(500).json({
       success: false,

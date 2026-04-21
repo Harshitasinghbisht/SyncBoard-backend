@@ -4,50 +4,44 @@ import TaskCard from "../card/TaskCard";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteList, updateList } from "../../Thunks/listThunks.js";
 import { createCard, getAllCard } from "../../Thunks/cardThunks.js";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
-  arrayMove,
 } from "@dnd-kit/sortable";
 
-function ListContainer({ list }) {
+function ListContainer({ list, cards = [] }) {
   const [taskOpen, setTaskOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(list.title);
-  const [orderedCards, setOrderedCards] = useState([]);
 
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.list);
-  const { cardsByList } = useSelector((state) => state.card);
 
   const listId = list._id;
-  const listCards = cardsByList[listId] || [];
 
-  // fetch cards
+  const { setNodeRef } = useDroppable({
+    id: listId,
+    data: {
+      type: "list",
+    },
+  });
+
   useEffect(() => {
     if (listId) {
       dispatch(getAllCard(listId));
     }
   }, [dispatch, listId]);
 
-  // sync redux → local state
-  useEffect(() => {
-    setOrderedCards(listCards);
-  }, [listCards]);
-
-  // create task
   const handleCreateTask = (title, description) => {
     dispatch(createCard({ listId, title, description }));
     setTaskOpen(false);
   };
 
-  // delete list
   const handleDelete = () => {
     dispatch(deleteList(list._id));
   };
 
-  // edit list
   const handleSave = () => {
     if (!editTitle.trim()) return;
     dispatch(updateList({ listId: list._id, title: editTitle }));
@@ -59,25 +53,9 @@ function ListContainer({ list }) {
     setIsEditing(false);
   };
 
-  // drag end (reorder logic)
-  const handleDragEnd = ({ active, over }) => {
-    if (!over) return;
-    if (active.id === over.id) return;
-
-    setOrderedCards((items) => {
-      const oldIndex = items.findIndex((item) => item._id === active.id);
-      const newIndex = items.findIndex((item) => item._id === over.id);
-
-      if (oldIndex === -1 || newIndex === -1) return items;
-
-      return arrayMove(items, oldIndex, newIndex);
-    });
-  };
-
   if (loading) return <h1>Loading...</h1>;
   if (error) return <h1>Error: {error}</h1>;
 
-  // edit mode
   if (isEditing) {
     return (
       <div className="w-72 bg-[#1e293b] rounded-xl p-4">
@@ -105,53 +83,64 @@ function ListContainer({ list }) {
     );
   }
 
-  // normal view
   return (
-    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext
-        items={orderedCards.map((card) => card._id)}
-        strategy={verticalListSortingStrategy}
+    <SortableContext
+      items={cards.map((card) => card._id)}
+      strategy={verticalListSortingStrategy}
+    >
+      <div
+        ref={setNodeRef}
+        className="w-72 bg-[#1e293b] rounded-xl p-4 min-h-[200px]"
       >
-        <div className="w-72 bg-[#1e293b] rounded-xl p-4">
-          <h2 className="text-white font-semibold mb-3">{list.title}</h2>
+        <h2 className="text-white font-semibold mb-3">{list.title}</h2>
 
-          <div className="space-y-3">
-            {orderedCards.map((task, index) => (
-              <TaskCard key={task._id} card={task} index={index} />
-            ))}
-          </div>
+        <div className="space-y-3 min-h-[80px]">
+          {cards.length > 0 ? (
+            cards.map((task, index) => (
+              <TaskCard
+                key={task._id}
+                card={task}
+                listId={list._id}
+                index={index}
+              />
+            ))
+          ) : (
+            <div className="rounded-lg border border-dashed border-slate-600 p-4 text-sm text-slate-400">
+              Drop task here
+            </div>
+          )}
+        </div>
 
+        <button
+          onClick={() => setTaskOpen(true)}
+          className="flex w-full justify-center border-2 border-dashed border-slate-600 px-4 py-3 mt-4 text-sm text-slate-300"
+        >
+          + Add Task
+        </button>
+
+        <CardForm
+          isTaskOpen={taskOpen}
+          isTaskClose={() => setTaskOpen(false)}
+          onCreatedTask={handleCreateTask}
+        />
+
+        <div className="mt-3 flex gap-2">
           <button
-            onClick={() => setTaskOpen(true)}
-            className="flex w-full justify-center border-2 border-dashed border-slate-600 px-4 py-3 mt-4 text-sm text-slate-300"
+            onClick={() => setIsEditing(true)}
+            className="border px-3 py-1 text-sm text-white"
           >
-            + Add Task
+            Update
           </button>
 
-          <CardForm
-            isTaskOpen={taskOpen}
-            isTaskClose={() => setTaskOpen(false)}
-            onCreatedTask={handleCreateTask}
-          />
-
-          <div className="mt-3 flex gap-2">
-            <button
-              onClick={() => setIsEditing(true)}
-              className="border px-3 py-1 text-sm text-white"
-            >
-              Update
-            </button>
-
-            <button
-              onClick={handleDelete}
-              className="border px-3 py-1 text-sm text-red-400"
-            >
-              Delete
-            </button>
-          </div>
+          <button
+            onClick={handleDelete}
+            className="border px-3 py-1 text-sm text-red-400"
+          >
+            Delete
+          </button>
         </div>
-      </SortableContext>
-    </DndContext>
+      </div>
+    </SortableContext>
   );
 }
 

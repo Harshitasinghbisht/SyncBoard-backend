@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-function TaskCard({ card ,nextListId }) {
+function TaskCard({ card ,listId }) {
   const {loading ,error}=useSelector((state)=>state.card);
   const [isEditing ,setIsEditing]=useState(false);
   const [editTitle, setEditTitle]=useState(card.title);
@@ -44,7 +44,10 @@ const {
     listeners,
     setNodeRef,
     transform,
-    transition,}=useSortable({id:card._id})
+    transition,}=useSortable({id:card._id,data: {
+    type: "card",
+    listId: listId
+  }})
  
    const style = {
   transform: transform ? CSS.Transform.toString(transform) : undefined,
