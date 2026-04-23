@@ -118,19 +118,27 @@ const cardSlice=createSlice({
                state.loading = false;
                state.success = true;
              
-               const updatedDestinationCards = action.payload.cards;
-               const { sourceListId, destinationListId } = action.meta.arg.moveData;
-               const movedCardId = action.meta.arg.cardId;
-             
-               const sourceCards = state.cardsByList[sourceListId] || [];
-             
-               state.cardsByList[sourceListId] = sourceCards.filter(
-                 (card) => card._id !== movedCardId
-               );
-             
-               state.cardsByList[destinationListId] = updatedDestinationCards;
-             
-               state.actionType = "Card moved";
+               const {
+    sourceListId,
+    destinationListId,
+    cards,
+    sourceCards,
+    destinationCards,
+    message
+  } = action.payload;
+
+  // same list reorder
+  if (message === "Card reordered successfully") {
+    state.cardsByList[sourceListId] = cards;
+  }
+
+  // move card to another list
+  if (message === "Card moved successfully") {
+    state.cardsByList[sourceListId] = sourceCards;
+    state.cardsByList[destinationListId] = destinationCards;
+  }
+
+  state.actionType = "Card moved successfully";
 })
         .addCase(moveCard.rejected,(state,action)=>{
             state.loading=false;

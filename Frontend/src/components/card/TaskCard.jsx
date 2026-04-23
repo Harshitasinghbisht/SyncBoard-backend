@@ -5,7 +5,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 function TaskCard({ card ,listId }) {
-  const {loading ,error}=useSelector((state)=>state.card);
+
   const [isEditing ,setIsEditing]=useState(false);
   const [editTitle, setEditTitle]=useState(card.title);
   const [editDescription , setEditDescription]=useState(card.description);
@@ -53,12 +53,7 @@ const {
   transform: transform ? CSS.Transform.toString(transform) : undefined,
   transition,
 };
-  if(loading){
-    return <h1>Loading...</h1>
-  }
-  if(error){
-    return <h1>error {error}</h1>
-  }
+ 
   if(!isEditing){
     return(
       <div 
