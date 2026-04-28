@@ -33,6 +33,23 @@ reducers:{
        },
        clearGetAllListSuccess:(state)=>{
         state.getAllLitSuccess=false
+       },
+       createListRealTime:(state,action)=>{
+        const newList=action.payload;
+        const exist=state.lists.some(
+            (list)=>list._id===newList._id    
+        );
+        if(!exist){
+        state.lists.push(newList);}
+       },
+       updateListRealTime:(state,action)=>{
+        const updatedList=action.payload;
+         
+     state.lists = state.lists.map((list) =>list._id?.toString() === updatedList._id?.toString() ? updatedList : list);
+       },
+       deleteListRealTime:(state,action)=>{
+        const deletelist=action.payload;
+        state.lists=state.lists.filter((list)=>list._id?.toString()!==deletelist._id?.toString())
        }
 },
  extraReducers:(builder)=>{
@@ -45,7 +62,17 @@ reducers:{
         })
         .addCase(createList.fulfilled,(state,action)=>{
             state.loading=false;
-            state.lists.push(action.payload.list);
+            const newList = action.payload.list;
+
+  if (!newList?._id) return;
+
+  const exists = state.lists.some(
+    (list) => list._id?.toString() === newList._id?.toString()
+  );
+
+  if (!exists) {
+    state.lists.push(newList);
+  }
             state.createListSuccess=true;
         })
         .addCase(createList.rejected,(state,action)=>{
@@ -125,5 +152,5 @@ reducers:{
        }
 })
 
-export const{clearCreatelistSuccess,clearDeleteListSuccess,clearGetAllListSuccess,clearReorderListSuccess,clearUpdateListSuccess}=listSlice.actions;
+export const{clearCreatelistSuccess,clearDeleteListSuccess,clearGetAllListSuccess,clearReorderListSuccess,clearUpdateListSuccess,createListRealTime,updateListRealTime,deleteListRealTime}=listSlice.actions;
 export default listSlice.reducer;

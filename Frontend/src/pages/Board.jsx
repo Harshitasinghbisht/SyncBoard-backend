@@ -15,7 +15,7 @@ import { arrayMove } from "@dnd-kit/sortable";
 
 import { socket } from "../components/socket/socket.js";
 import { cardMovedRealtime ,cardCreatedRealtime,cardUpdatedRealTime,cardDeleteRealTime} from "../redux/cardSlice.js";
-
+import { createListRealTime ,updateListRealTime,deleteListRealTime} from "../redux/listSlice.js";
 function Board() {
   const dispatch = useDispatch();
   const { boardId } = useParams();
@@ -46,7 +46,7 @@ function Board() {
     setCardsByList(reduxCardsByList || {});
   }, [reduxCardsByList]);
 
- // socket useEffect
+ // socket useEffect for cards
 
  //for join and leave board
   useEffect(() => {
@@ -93,10 +93,7 @@ function Board() {
   };
 }, [dispatch]);
 
-  const handleCreateList = (title) => {
-    dispatch(createList({ boardId, title }));
-    setOpenList(false);
-  };
+ 
  // for update card
   useEffect(()=>{
    const handleUpdateCard=(card)=>{
@@ -118,7 +115,44 @@ function Board() {
 
     return()=>socket.off("deleteCard",handleDeleteCard);
   })
+ const handleCreateList = (title) => {
+    dispatch(createList({ boardId, title }));
+    setOpenList(false);
+  };
 
+  //useEffect for list
+
+  //cerate list
+
+  useEffect(()=>{
+    const handleCreateList=(list)=>{
+      dispatch(createListRealTime(list));
+    };
+    socket.on("createList",handleCreateList);
+      return ()=>socket.off("createList",handleCreateList);
+  })
+
+  //update List
+
+  useEffect(()=>{
+    const handleUpdateList=(list)=>{
+   dispatch(updateListRealTime(list));
+    }
+
+    socket.on("updateList",handleUpdateList);
+    return()=>socket.off("updateList",handleUpdateList)
+  })
+
+  //deleteList
+
+  useEffect(()=>{
+    const handleDeleteList=(list)=>{
+      dispatch(deleteListRealTime(list));
+    }
+
+    socket.on("deleteList",handleDeleteList);
+    return()=>socket.off("deleteList",handleDeleteList);
+  })
   const handleDragStart = ({ active }) => {
     if (!active) return;
     if (active.data.current?.type !== "card") return;

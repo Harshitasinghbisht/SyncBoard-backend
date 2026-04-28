@@ -1,4 +1,5 @@
 import List from "../models/List.model.js";
+import {getIO} from "../utils/socket.js"
 
 const createList=async(req,res)=>{
  const {title}=req.body;
@@ -32,6 +33,8 @@ if(!list){
     message:"unable to create list"
     })
 }
+const io=getIO();
+io.to(board._id.toString()).emit("createList",list)
     res.status(201).json({
         success:true,
         message:"list created successfully",
@@ -62,6 +65,9 @@ if(!trimTitle){
 try {
       req.list.title = trimTitle;
       await req.list.save();
+
+      const io=getIO();
+      io.to(list.board.toString()).emit("updateList",list);
   res.status(200).json({
     success:true,
     message:"list updated successfully",
@@ -80,6 +86,9 @@ const deleteList=async(req,res)=>{
 const list=req.list;
 try {
     await list.deleteOne();
+
+    const io=getIO();
+    io.to(list.board.toString()).emit("deleteList",list);
     res.status(200).json({
         success:true,
         message:"list deleted successfully",
