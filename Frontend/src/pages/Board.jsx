@@ -1,39 +1,78 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ListContainer from "../components/list/ListContainer";
 import ListForm from "../components/list/ListForm";
-import { useDispatch, useSelector } from "react-redux";
-import { getSingleBoard } from "../Thunks/boardThunks.js";
-import { useParams } from "react-router-dom";
-import { createList, getAllList } from "../Thunks/listThunks.js";
 import BoardMemberSection from "../components/member/BoardMemberSection.jsx";
-import { arrayMove } from "@dnd-kit/sortable";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+
+import { getSingleBoard } from "../Thunks/boardThunks.js";
+import { createList, getAllList } from "../Thunks/listThunks.js";
 import { moveCard } from "../Thunks/cardThunks.js";
-import { useRef } from "react";
+
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
+
+import { socket } from "../components/socket/socket.js";
+import { cardMovedRealtime } from "../redux/cardSlice.js";
 
 function Board() {
-  const { loading, currentBoard, error } = useSelector((state) => state.board);
-  const { lists } = useSelector((state) => state.list);
-  const { cardsByList: reduxCardsByList } = useSelector((state) => state.card);
-
   const dispatch = useDispatch();
   const { boardId } = useParams();
-  const dragOriginListRef = useRef(null);
-  const isDraggingRef=useRef(false);
+
+  const { loading, currentBoard, error } = useSelector((state) => state.board);
+  const { lists = [] } = useSelector((state) => state.list);
+  const { cardsByList: reduxCardsByList = {} } = useSelector(
+    (state) => state.card
+  );
 
   const [openList, setOpenList] = useState(false);
   const [cardsByList, setCardsByList] = useState({});
 
+  const dragOriginListRef = useRef(null);
+  const isDraggingRef = useRef(false);
+  const lastOverRef = useRef(null);
+
   useEffect(() => {
-    if (boardId) {
-      dispatch(getSingleBoard(boardId));
-      dispatch(getAllList(boardId));
-    }
+    if (!boardId) return;
+
+    dispatch(getSingleBoard(boardId));
+    dispatch(getAllList(boardId));
   }, [dispatch, boardId]);
 
   useEffect(() => {
+    if (isDraggingRef.current) return;
+
     setCardsByList(reduxCardsByList || {});
   }, [reduxCardsByList]);
+
+  useEffect(() => {
+    if (!boardId) return;
+
+    socket.emit("joinBoard", boardId);
+
+    return () => {
+      socket.emit("leaveBoard", boardId);
+    };
+  }, [boardId]);
+
+  useEffect(() => {
+    if (!boardId) return;
+
+    const handleCardMoved = (data) => {
+      if (isDraggingRef.current) return;
+
+      console.log("Realtime card move received:", data);
+      dispatch(cardMovedRealtime(data));
+    };
+
+    socket.off("cardMoved");
+    socket.on("cardMoved", handleCardMoved);
+
+    return () => {
+      socket.off("cardMoved", handleCardMoved);
+    };
+  }, [boardId, dispatch]);
 
   const handleCreateList = (title) => {
     dispatch(createList({ boardId, title }));
@@ -41,141 +80,162 @@ function Board() {
   };
 
   const handleDragStart = ({ active }) => {
-  if (!active) return;
-  if (active.data.current?.type !== "card") return;
-  isDraggingRef.current = true;
-  dragOriginListRef.current = active.data.current?.listId || null;
-};
+    if (!active) return;
+    if (active.data.current?.type !== "card") return;
+
+    isDraggingRef.current = true;
+    dragOriginListRef.current = active.data.current?.listId || null;
+    lastOverRef.current = null;
+  };
 
   const handleDragOver = ({ active, over }) => {
-  if (!over) return;
-  if (active.data.current?.type !== "card") return;
+    if (!over) return;
+    if (active.data.current?.type !== "card") return;
 
-  const cardId = active.id;
+    const cardId = active.id;
+    const overId = over.id;
 
-  setCardsByList((prev) => {
-    let currentListId = null;
-    let destinationListId = null;
+    const overKey = `${cardId}-${overId}`;
 
-    // find card's CURRENT visual list from latest local state
-    for (const listId in prev) {
-      if ((prev[listId] || []).some((card) => card._id === cardId)) {
-        currentListId = listId;
-        break;
+    if (lastOverRef.current === overKey) return;
+
+    lastOverRef.current = overKey;
+
+    setCardsByList((prev) => {
+      let currentListId = null;
+      let destinationListId = null;
+
+      for (const listId in prev) {
+        const found = (prev[listId] || []).some(
+          (card) => card._id === cardId
+        );
+
+        if (found) {
+          currentListId = listId;
+          break;
+        }
       }
+
+      if (over.data.current?.type === "card") {
+        destinationListId = over.data.current.listId;
+      } else if (over.data.current?.type === "list") {
+        destinationListId = over.id;
+      }
+
+      if (!currentListId || !destinationListId) return prev;
+
+      const currentCards = [...(prev[currentListId] || [])];
+      const destinationCards = [...(prev[destinationListId] || [])];
+
+      const activeIndex = currentCards.findIndex(
+        (card) => card._id === cardId
+      );
+
+      if (activeIndex === -1) return prev;
+
+      const movedCard = currentCards[activeIndex];
+
+      if (currentListId === destinationListId) {
+        const overIndex = currentCards.findIndex(
+          (card) => card._id === overId
+        );
+
+        if (overIndex === -1 || overIndex === activeIndex) return prev;
+
+        return {
+          ...prev,
+          [currentListId]: arrayMove(currentCards, activeIndex, overIndex),
+        };
+      }
+
+      currentCards.splice(activeIndex, 1);
+
+      const cleanedDestinationCards = destinationCards.filter(
+        (card) => card._id !== cardId
+      );
+
+      let overIndex = cleanedDestinationCards.findIndex(
+        (card) => card._id === overId
+      );
+
+      if (overIndex === -1) {
+        overIndex = cleanedDestinationCards.length;
+      }
+
+      cleanedDestinationCards.splice(overIndex, 0, {
+        ...movedCard,
+        listId: destinationListId,
+      });
+
+      return {
+        ...prev,
+        [currentListId]: currentCards,
+        [destinationListId]: cleanedDestinationCards,
+      };
+    });
+  };
+
+  const handleDragEnd = ({ active, over }) => {
+    lastOverRef.current = null;
+
+    if (!over || active.data.current?.type !== "card") {
+      isDraggingRef.current = false;
+      dragOriginListRef.current = null;
+      return;
     }
 
-    // find destination list
+    const cardId = active.id;
+
+    const sourceListId =
+      dragOriginListRef.current || active.data.current?.listId;
+
+    let destinationListId = null;
+
     if (over.data.current?.type === "card") {
       destinationListId = over.data.current.listId;
     } else if (over.data.current?.type === "list") {
       destinationListId = over.id;
     }
 
-    if (!currentListId || !destinationListId) return prev;
-
-    const currentCards = [...(prev[currentListId] || [])];
-    const destinationCards = [...(prev[destinationListId] || [])];
-
-    const activeIndex = currentCards.findIndex((card) => card._id === cardId);
-    if (activeIndex === -1) return prev;
-
-    const movedCard = currentCards[activeIndex];
-
-    // same list reorder preview
-    if (currentListId === destinationListId) {
-      const overIndex = currentCards.findIndex((card) => card._id === over.id);
-
-      if (overIndex === -1 || overIndex === activeIndex) return prev;
-
-      return {
-        ...prev,
-        [currentListId]: arrayMove(currentCards, activeIndex, overIndex),
-      };
+    if (!cardId || !sourceListId || !destinationListId) {
+      isDraggingRef.current = false;
+      dragOriginListRef.current = null;
+      return;
     }
 
-    // cross-list preview
-    currentCards.splice(activeIndex, 1);
+    const destinationCards = cardsByList[destinationListId] || [];
 
-    const cleanedDestinationCards = destinationCards.filter(
-      (card) => card._id !== cardId
+    let newPosition = destinationCards.findIndex(
+      (card) => card._id === cardId
     );
-
-    let overIndex = cleanedDestinationCards.findIndex(
-      (card) => card._id === over.id
-    );
-
-    if (overIndex === -1) {
-      overIndex = cleanedDestinationCards.length;
-    }
-
-    cleanedDestinationCards.splice(overIndex, 0, {
-      ...movedCard,
-      listId: destinationListId,
-    });
-
-    return {
-      ...prev,
-      [currentListId]: currentCards,
-      [destinationListId]: cleanedDestinationCards,
-    };
-  });
-};
-
- const handleDragEnd = ({ active, over }) => {
-  if (!over) {
-    dragOriginListRef.current = null;
-    return;
-  }
-
-  if (active.data.current?.type !== "card") {
-    dragOriginListRef.current = null;
-    return;
-  }
-
-  const cardId = active.id;
-
-  // ORIGINAL source for backend
-  const sourceListId = dragOriginListRef.current || active.data.current?.listId;
-
-  let destinationListId = null;
-
-  if (over.data.current?.type === "card") {
-    destinationListId = over.data.current.listId;
-  } else if (over.data.current?.type === "list") {
-    destinationListId = over.id;
-  }
-
-  if (!cardId || !sourceListId || !destinationListId) {
-    dragOriginListRef.current = null;
-    return;
-  }
-
-  const destinationCards = cardsByList[destinationListId] || [];
-
-  let newPosition = destinationCards.findIndex((card) => card._id === cardId);
-
-  if (newPosition === -1) {
-    newPosition = destinationCards.findIndex((card) => card._id === over.id);
 
     if (newPosition === -1) {
-      newPosition = destinationCards.length;
-    }
-  }
+      newPosition = destinationCards.findIndex(
+        (card) => card._id === over.id
+      );
 
-  dispatch(
-    moveCard({
-      cardId,
-      moveData: {
-        sourceListId,
-        destinationListId,
-        newPosition,
-      },
-    })
-  );
-  isDraggingRef.current=false;
-  dragOriginListRef.current = null;
-};
+      if (newPosition === -1) {
+        newPosition = destinationCards.length;
+      }
+    }
+
+    dispatch(
+      moveCard({
+        cardId,
+        moveData: {
+          sourceListId,
+          destinationListId,
+          newPosition,
+        },
+      })
+    ).finally(() => {
+      setTimeout(() => {
+        isDraggingRef.current = false;
+        dragOriginListRef.current = null;
+        lastOverRef.current = null;
+      }, 100);
+    });
+  };
 
   if (loading) {
     return <h1>Loading...</h1>;
@@ -185,23 +245,20 @@ function Board() {
     return <h1>Error : {error}</h1>;
   }
 
+
   return (
     <DndContext
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
+     onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <main className="min-h-screen bg-[#0f172a] px-5 py-5 text-white">
         <div className="mb-6 border-b border-gray-700 pb-4">
-          <h1 className="text-xl font-semibold tracking-wide">
-            Board
-          </h1>
+          <h1 className="text-xl font-semibold tracking-wide">Board</h1>
 
           <div className="mt-4">
-            <h2 className="text-2xl font-bold">
-              {currentBoard?.title}
-            </h2>
+            <h2 className="text-2xl font-bold">{currentBoard?.title}</h2>
 
             <p className="mt-1 text-sm text-gray-400">
               Manage your lists and track your tasks.

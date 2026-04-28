@@ -5,7 +5,7 @@ function MemberCard({ name, email, role, isOwner ,memberId }) {
   const dispatch=useDispatch();
   const {currentBoard}=useSelector((state)=>state.board)
   const boardId=currentBoard._id;
-  console.log("boardid",boardId);
+  
   const handleRemove = () => {
     dispatch(removeMember({boardId,memberId}))
   };

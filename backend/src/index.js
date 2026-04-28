@@ -3,6 +3,8 @@ import express from "express";
 import db from './utils/db.js';
 import cors from "cors";
 import cookieParser from 'cookie-parser';
+import http from "http";
+import { initSocket } from './utils/socket.js';
 
 
 //importing all the routes
@@ -15,6 +17,7 @@ import cardRouter from './routes/card.routes.js';
 
 dotenv.config()
 const app=express();
+const server=http.createServer(app);
 
 app.use(cors({
     origin:process.env.FRONTEND_BASE_URL,
@@ -36,7 +39,9 @@ app.use("/api/v1/boards",boardRouter);
 app.use("/api/v1/lists",listRouter);
 app.use("/api/v1/cards",cardRouter);
 
-app.listen(port,()=>{
+initSocket(server);
+
+server.listen(port,()=>{
     console.log(`app listning to port http://localhost:${port}`);
     
 })

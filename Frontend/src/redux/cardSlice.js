@@ -16,7 +16,42 @@ const cardSlice=createSlice({
     reducers:{
          clearError:(state)=>{
         state.error=null
-       }
+       },
+        cardMovedRealtime: (state, action) => {
+  const {
+    card,
+    sourceListId,
+    destinationListId,
+    newPosition,
+    cards,
+  } = action.payload;
+
+  // same-list reorder
+  if (sourceListId === destinationListId) {
+    state.cardsByList[sourceListId] = cards;
+    return;
+  }
+
+  // remove from source list
+  state.cardsByList[sourceListId] =
+    state.cardsByList[sourceListId]?.filter(
+      (c) => c._id !== card._id
+    ) || [];
+
+  // create destination if missing
+  if (!state.cardsByList[destinationListId]) {
+    state.cardsByList[destinationListId] = [];
+  }
+
+  // remove duplicate from destination
+  state.cardsByList[destinationListId] =
+    state.cardsByList[destinationListId].filter(
+      (c) => c._id !== card._id
+    );
+
+  // insert at correct dropped position
+  state.cardsByList[destinationListId].splice(newPosition, 0, card);
+},
     },
     extraReducers:(builder)=>{
         builder
@@ -148,5 +183,5 @@ const cardSlice=createSlice({
          
     }
 })
-export const{clearError}=cardSlice.actions;
+export const{clearError,cardMovedRealtime}=cardSlice.actions;
 export default cardSlice.reducer;

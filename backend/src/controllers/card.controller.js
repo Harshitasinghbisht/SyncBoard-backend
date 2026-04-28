@@ -1,6 +1,7 @@
 import List from "../models/List.model.js"
 import Card from "../models/Card.model.js";
 import mongoose from "mongoose";
+import { getIO } from "../utils/socket.js";
 
 const createCard=async(req,res)=>{
     const list=req.list;
@@ -208,7 +209,14 @@ const moveCard = async (req, res) => {
       }
 
       await session.commitTransaction();
-
+      getIO().to(board._id.toString()).emit("cardMoved", {
+        boardId: board._id.toString(),
+        card,
+        sourceListId,
+        destinationListId,
+        newPosition,
+        cards
+      });
       return res.status(200).json({
         success: true,
         message: "Card reordered successfully",
@@ -252,6 +260,18 @@ const moveCard = async (req, res) => {
       }
 
       await session.commitTransaction();
+
+     const io=getIO();
+
+     io.to(board._id.toString()).emit("cardMoved",{
+      boardId:board._id,
+      card,
+      sourceListId,
+      destinationListId,
+      newPosition
+     })
+
+     console.log(" ewmmited cardMoved")
 
       return res.status(200).json({
         success: true,
