@@ -14,7 +14,7 @@ import { DndContext, closestCenter } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 
 import { socket } from "../components/socket/socket.js";
-import { cardMovedRealtime } from "../redux/cardSlice.js";
+import { cardMovedRealtime ,cardCreatedRealtime,cardUpdatedRealTime,cardDeleteRealTime} from "../redux/cardSlice.js";
 
 function Board() {
   const dispatch = useDispatch();
@@ -46,6 +46,9 @@ function Board() {
     setCardsByList(reduxCardsByList || {});
   }, [reduxCardsByList]);
 
+ // socket useEffect
+
+ //for join and leave board
   useEffect(() => {
     if (!boardId) return;
 
@@ -55,6 +58,8 @@ function Board() {
       socket.emit("leaveBoard", boardId);
     };
   }, [boardId]);
+
+  //for moving cards
 
   useEffect(() => {
     if (!boardId) return;
@@ -74,10 +79,45 @@ function Board() {
     };
   }, [boardId, dispatch]);
 
+  //for create card 
+
+  useEffect(() => {
+  const handleCardCreated = (card) => {
+    dispatch(cardCreatedRealtime(card));
+  };
+
+  socket.on("cardCreated", handleCardCreated);
+
+  return () => {
+    socket.off("cardCreated", handleCardCreated);
+  };
+}, [dispatch]);
+
   const handleCreateList = (title) => {
     dispatch(createList({ boardId, title }));
     setOpenList(false);
   };
+ // for update card
+  useEffect(()=>{
+   const handleUpdateCard=(card)=>{
+    dispatch(cardUpdatedRealTime(card))
+   };
+   socket.on("updateCard",handleUpdateCard);
+
+   return()=>socket.off("updateCard",handleUpdateCard);
+  })
+
+  // for delete card
+
+  useEffect(()=>{
+    const handleDeleteCard=(card)=>{
+      dispatch(cardDeleteRealTime(card));
+    }
+
+    socket.on("deleteCard",handleDeleteCard);
+
+    return()=>socket.off("deleteCard",handleDeleteCard);
+  })
 
   const handleDragStart = ({ active }) => {
     if (!active) return;

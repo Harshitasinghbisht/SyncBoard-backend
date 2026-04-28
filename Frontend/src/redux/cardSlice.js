@@ -52,6 +52,47 @@ const cardSlice=createSlice({
   // insert at correct dropped position
   state.cardsByList[destinationListId].splice(newPosition, 0, card);
 },
+cardCreatedRealtime:(state,action)=>{
+ const newCard = action.payload;
+    const listId = newCard.listId;
+
+    if (!state.cardsByList[listId]) {
+        state.cardsByList[listId] = [];
+    }
+
+    const exists = state.cardsByList[listId].some(
+        card => card._id === newCard._id
+    );
+
+    if (!exists) {
+        state.cardsByList[listId].push(newCard);
+    }
+    state.cardsByList[listId].sort((a,b)=>a.order-b.order)        
+},
+cardUpdatedRealTime:(state,action)=>{
+   const updatedCard=action.payload;
+            const listId = updatedCard.listId.toString(); 
+  if (!listId || !updatedCard._id) return;
+             if (state.cardsByList[listId]) {
+               state.cardsByList[listId] = state.cardsByList[listId].map((card) =>
+                 card._id?.toString() === updatedCard._id?.toString() ? updatedCard : card
+               );
+             }
+},
+cardDeleteRealTime:(state,action)=>{
+    const { cardId, listId } = action.payload;
+
+  const safeListId = listId?.toString();
+  const safeCardId = cardId?.toString();
+
+  if (!safeListId || !safeCardId) return;
+
+  if (state.cardsByList[safeListId]) {
+    state.cardsByList[safeListId] = state.cardsByList[safeListId].filter(
+      (card) => card._id?.toString() !== safeCardId
+    );
+  }
+}
     },
     extraReducers:(builder)=>{
         builder
@@ -69,8 +110,13 @@ const cardSlice=createSlice({
             if (!state.cardsByList[listId]) {
                 state.cardsByList[listId] = [];
             }
-        
-            state.cardsByList[listId].push(newCard);
+         const alreadyExists = state.cardsByList[listId].some(
+               (card) => card._id === newCard._id
+             );
+           
+             if (!alreadyExists) {
+               state.cardsByList[listId].push(newCard);
+             }
             state.success = true;
             state.actionType = "card created";
 })
@@ -183,5 +229,5 @@ const cardSlice=createSlice({
          
     }
 })
-export const{clearError,cardMovedRealtime}=cardSlice.actions;
+export const{clearError,cardMovedRealtime,cardCreatedRealtime,cardUpdatedRealTime,cardDeleteRealTime}=cardSlice.actions;
 export default cardSlice.reducer;

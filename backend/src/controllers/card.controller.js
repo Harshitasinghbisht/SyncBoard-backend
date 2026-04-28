@@ -30,6 +30,8 @@ const createCard=async(req,res)=>{
         order:newOrder,
         createdBy:userId
      })
+     const io=getIO();
+     io.to(board._id.toString()).emit("cardCreated",card)
      res.status(201).json({
         success:true,
         message:"Card creation successfully",
@@ -95,7 +97,8 @@ const updateCard=async(req,res)=>{
     try {
       
         await card.save();
-
+const io=getIO();
+io.to(card.boardId.toString()).emit("updateCard",card);
         res.status(200).json({
                 success:true,
                 message:"card updation successful",
@@ -117,6 +120,12 @@ const deleteCard=async(req,res)=>{
             success:true,
             message:"card deleted successfully"
         })
+
+        const io=getIO();
+        io.to(card.boardId.toString()).emit("deleteCard",{
+  cardId: card._id,
+  listId: card.listId,
+});
     } catch (error) {
          res.status(500).json({
             success:false,
@@ -131,7 +140,7 @@ const moveCard = async (req, res) => {
   const board = req.board;
 
   const session = await mongoose.startSession();
-
+  const io=getIO();
   try {
     if (!sourceListId || !destinationListId || newPosition === undefined) {
       return res.status(400).json({
@@ -209,7 +218,7 @@ const moveCard = async (req, res) => {
       }
 
       await session.commitTransaction();
-      getIO().to(board._id.toString()).emit("cardMoved", {
+      io.to(board._id.toString()).emit("cardMoved", {
         boardId: board._id.toString(),
         card,
         sourceListId,
@@ -261,7 +270,7 @@ const moveCard = async (req, res) => {
 
       await session.commitTransaction();
 
-     const io=getIO();
+     
 
      io.to(board._id.toString()).emit("cardMoved",{
       boardId:board._id,
