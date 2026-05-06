@@ -5,10 +5,10 @@ import BoardMemberSection from "../components/member/BoardMemberSection.jsx";
 
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 import { getSingleBoard } from "../Thunks/boardThunks.js";
 import { createList, getAllList } from "../Thunks/listThunks.js";
-import { moveCard } from "../Thunks/cardThunks.js";
+import { moveCard, updateCard } from "../Thunks/cardThunks.js";
 
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
@@ -16,6 +16,7 @@ import { arrayMove } from "@dnd-kit/sortable";
 import { socket } from "../components/socket/socket.js";
 import { cardMovedRealtime ,cardCreatedRealtime,cardUpdatedRealTime,cardDeleteRealTime} from "../redux/cardSlice.js";
 import { createListRealTime ,updateListRealTime,deleteListRealTime} from "../redux/listSlice.js";
+import { addMemberRealTime,removeMemberRealTime } from "../redux/boardSlice.js";
 function Board() {
   const dispatch = useDispatch();
   const { boardId } = useParams();
@@ -39,6 +40,27 @@ function Board() {
     dispatch(getSingleBoard(boardId));
     dispatch(getAllList(boardId));
   }, [dispatch, boardId]);
+
+  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  useEffect(() => {
+  if (!currentBoard || !user) return;
+
+  const userId = user._id || user.id;
+
+  const isOwner = currentBoard.owner?._id?.toString() === userId?.toString();
+
+  const isMember = currentBoard.members?.some(
+    (member) => member._id?.toString() === userId?.toString()
+  );
+
+  if (!isOwner && !isMember) {
+    navigate("/dashboard");
+  }
+   if (user?._id) {
+    socket.emit("joinUser", user._id);
+  }
+}, [currentBoard, user, navigate]);
 
   useEffect(() => {
     if (isDraggingRef.current) return;
@@ -153,6 +175,27 @@ function Board() {
     socket.on("deleteList",handleDeleteList);
     return()=>socket.off("deleteList",handleDeleteList);
   })
+
+  //useEffect for members
+
+ useEffect(() => {
+  const handleMemberAdded = (updatedBoard) => {
+    dispatch(addMemberRealTime(updatedBoard));
+  };
+
+  const handleMemberRemoved = (updatedBoard) => {
+    dispatch(removeMemberRealTime(updatedBoard));
+  };
+
+  socket.on("addMember", handleMemberAdded);
+  socket.on("removeMember", handleMemberRemoved);
+
+  return () => {
+    socket.off("addMember", handleMemberAdded);
+    socket.off("removeMember", handleMemberRemoved);
+  };
+}, [dispatch]);
+
   const handleDragStart = ({ active }) => {
     if (!active) return;
     if (active.data.current?.type !== "card") return;

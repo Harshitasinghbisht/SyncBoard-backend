@@ -1,5 +1,6 @@
 import Board from "../models/Board.model.js";
 import User from "../models/User.model.js";
+import {getIO} from "../utils/socket.js"
 
 const createBoard=async(req,res)=>{
        const {title}=req.body;
@@ -145,7 +146,11 @@ try {
       const updatedBoard = await Board.findById(board._id)
       .populate("owner", "name email")
       .populate("members", "name email");
-      console.log(updatedBoard)
+      
+const io=getIO();
+io.to(board._id.toString()).emit("addMember",updatedBoard)
+console.log("Emitting boardAdded to:", memberId.toString());
+io.to(memberId.toString()).emit("boardAdded", updatedBoard);
 
 res.status(200).json({
     success:true,
@@ -189,7 +194,8 @@ const updatedBoard = await Board.findById(board._id)
       .populate("owner", "name email")
       .populate("members", "name email");
     
-    console.log("updatedBoard members:", updatedBoard.members);
+   const io=getIO();
+   io.to(board._id.toString()).emit("removeMember",updatedBoard)
     res.status(200).json({
         success:true,
         message:"Member removed successfully",

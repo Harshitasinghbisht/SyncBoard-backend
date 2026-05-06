@@ -27,11 +27,6 @@ function Navbar() {
       name:"Dashboard",
       slug:"/dashboard",
       active:isAuthenticated
-    },
-    {
-      name:"Board-Details",
-      slug:"/board",
-      active:isAuthenticated
     }
 
   ]
@@ -73,7 +68,6 @@ function Navbar() {
 {isAuthenticated  && (<li>
     <LogoutBtn/>
     </li>)}
-    <li><Theme/></li>
 </ul>
         </div>
       </div>

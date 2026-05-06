@@ -4,7 +4,8 @@ import CreateBoardModel from "../components/board/CreateBoardModel";
 import { useNavigate } from "react-router-dom";
 import { createBoard, getAllBoard } from "../Thunks/boardThunks";
 import { useSelector ,useDispatch} from "react-redux";
-
+import { boardAddedRealTime } from "../redux/boardSlice.js";
+import { socket } from "../components/socket/socket.js";
 function Dashboard() {
   const {loading ,error,boards}=useSelector((state)=>{ return state.board});
   const dispatch=useDispatch();
@@ -21,6 +22,28 @@ const handleCreateBoard=(title)=>{
   dispatch(createBoard({title}));
   setModelOpen(false);
 }
+
+
+useEffect(() => {
+  const userId = user?._id || user?.id;
+
+  if (userId) {
+    console.log("Emitting joinUser:", userId);
+    socket.emit("joinUser", userId);
+  }
+}, [user]);
+//board added when user become member
+useEffect(() => {
+  const handleBoardAdded = (board) => {
+    console.log("boardAdded received:", board);
+    dispatch(boardAddedRealTime(board));
+  };
+
+  socket.on("boardAdded", handleBoardAdded);
+
+  return () => socket.off("boardAdded", handleBoardAdded);
+}, [dispatch]);
+
   return (
     <main 
     className="m-5 rounded-2xl border border-gray-800 bg-[#18181b] px-6 py-5 text-white">

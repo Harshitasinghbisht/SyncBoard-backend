@@ -31,7 +31,52 @@ const boardSlice=createSlice({
        },
        clearremovememberSuccess:(state)=>{
         state.removeMemberSuccess=false;
-       }
+       },
+       addMemberRealTime: (state, action) => {
+  const updatedBoard = action.payload;
+
+  if (!updatedBoard?._id) return;
+
+  state.currentBoard = updatedBoard;
+  state.members = updatedBoard.members || [];
+
+  const exists = state.boards.some(
+    (board) => board._id?.toString() === updatedBoard._id?.toString()
+  );
+
+  if (exists) {
+    state.boards = state.boards.map((board) =>
+      board._id?.toString() === updatedBoard._id?.toString()
+        ? updatedBoard
+        : board
+    );
+  } else {
+    state.boards.push(updatedBoard);
+  }
+},
+
+removeMemberRealTime: (state, action) => {
+  const updatedBoard = action.payload;
+
+  if (!updatedBoard?._id) return;
+
+  state.currentBoard = updatedBoard;
+  state.members = updatedBoard.members || [];
+
+  state.boards = state.boards.map((board) =>
+    board._id?.toString() === updatedBoard._id?.toString()
+      ? updatedBoard
+      : board
+  );
+},
+boardAddedRealTime:(state,action)=>{
+  const board=action.payload
+  const exist=state.boards.some((b)=>b._id.toString()===board._id.toString());
+
+  if(!exist){
+    state.boards.push(board);
+  }
+}
     },
     extraReducers:(builder)=>{
         builder
@@ -160,4 +205,4 @@ const boardSlice=createSlice({
 //add delete board to the ui
 //add the update success in slice and in backend add update controller and router
  export default boardSlice.reducer;
- export const{clearError,clearCreateSuccess,clearAddmemberSuccess,clearDeleteSuccess,clearremovememberSuccess}=boardSlice.actions;
+ export const{clearError,clearCreateSuccess,clearAddmemberSuccess,clearDeleteSuccess,clearremovememberSuccess,addMemberRealTime,removeMemberRealTime, boardAddedRealTime}=boardSlice.actions;
