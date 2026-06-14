@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createBoard ,deleteBoard,getAllBoard,getSingleBoard,getAllMember,addMember,removeMember } from "../Thunks/boardThunks.js";
+import { createBoard ,deleteBoard,getAllBoard,getSingleBoard,getAllMember,addMember,removeMember,updateBoard } from "../Thunks/boardThunks.js";
 
 const initialState = {
   boards: [],          // all boards
@@ -96,7 +96,31 @@ boardAddedRealTime:(state,action)=>{
                  state.createSuccess=false,
                  state.error=action.payload
         })
+         // update board
+         .addCase(updateBoard.pending, (state) => {
+             state.loading = true;
+         })
+         .addCase(updateBoard.fulfilled, (state, action) => {
+    const updatedBoard = action.payload.board;
+    state.loading=false;
 
+    state.boards = state.boards.map((board) =>
+        board._id === updatedBoard._id
+            ? updatedBoard
+            : board
+    );
+
+    if (
+        state.currentBoard &&
+        state.currentBoard._id === updatedBoard._id
+    ) {
+        state.currentBoard = updatedBoard;
+    }
+})
+         .addCase(updateBoard.rejected, (state, action) => {
+             state.loading = false;
+             state.error = action.payload;
+         })
         //delete board
         .addCase(deleteBoard.pending,(state)=>{
                 state.loading=true,

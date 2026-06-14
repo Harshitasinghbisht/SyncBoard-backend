@@ -56,7 +56,7 @@ const {title}=req.body;
 const list=req.list;
 
 const trimTitle=title?.trim();
-if(!trimTitle){
+if(!trimTitle){ 
     return res.status(400).json({
         success:false,
         message:" Title is required"

@@ -20,6 +20,11 @@ const deleteBoardService=async(boardId)=>{
     return boardId;
 }
 
+const updateBoardService=async(boardId,boardData)=>{
+  const res=  await api.put(`/boards/${boardId}`,boardData);
+    return res.data;
+}
+
 //members services
 
 const addMemberService=async(boardId,data)=>{
@@ -37,4 +42,4 @@ const getAllMemberService=async(boardId)=>{
     return res.data;
 }
 
-export {createBoardService,deleteBoardService,getAllBoardService,getSingleBoardService,addMemberService,removeMemberService,getAllMemberService}
+export {createBoardService,deleteBoardService,getAllBoardService,getSingleBoardService,addMemberService,removeMemberService,getAllMemberService,updateBoardService}

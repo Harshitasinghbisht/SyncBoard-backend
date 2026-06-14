@@ -2,15 +2,18 @@ import BoardCard from "../components/board/BoardCard";
 import { useState ,useEffect} from "react";
 import CreateBoardModel from "../components/board/CreateBoardModel";
 import { useNavigate } from "react-router-dom";
-import { createBoard, getAllBoard } from "../Thunks/boardThunks";
+import { createBoard, getAllBoard, deleteBoard,updateBoard } from "../Thunks/boardThunks";
 import { useSelector ,useDispatch} from "react-redux";
 import { boardAddedRealTime } from "../redux/boardSlice.js";
 import { socket } from "../components/socket/socket.js";
+
 function Dashboard() {
   const {loading ,error,boards}=useSelector((state)=>{ return state.board});
   const dispatch=useDispatch();
 
   const[modelOpen,setModelOpen]=useState(false);
+  const [selectedBoard, setSelectedBoard] = useState(null);
+const [isEditOpen, setIsEditOpen] = useState(false);
   const navigate=useNavigate();
   const user=useSelector((state)=>{return state.auth.user})
   
@@ -18,6 +21,14 @@ function Dashboard() {
     dispatch(getAllBoard())
   },[dispatch])
 
+  const handleEditBoard = (board) => {
+   setSelectedBoard(board);
+  setIsEditOpen(true);
+};
+
+const handleDeleteBoard = (boardId) => {
+  dispatch(deleteBoard(boardId));
+};
 const handleCreateBoard=(title)=>{
   dispatch(createBoard({title}));
   setModelOpen(false);
@@ -72,19 +83,27 @@ useEffect(() => {
   className="flex min-h-[180px] items-center justify-center rounded-2xl border-2 border-dashed border-gray-600 bg-[#232326] text-gray-300 transition hover:border-blue-500 hover:text-white">
     + Create New Board
   </button>
-  <CreateBoardModel
-  isOpen={modelOpen} 
-  isClose={() => setModelOpen(false)} 
-  onCreateBoard={handleCreateBoard}
-  />
+ <CreateBoardModel
+  isOpen={modelOpen}
+  isClose={() => setModelOpen(false)}
+  mode="create"
+/>
+
+<CreateBoardModel
+  isOpen={isEditOpen}
+  isClose={() => setIsEditOpen(false)}
+  mode="edit"
+  board={selectedBoard}
+/>
 </div>
       </div>
       
    <div className="grid grid-cols-3 gap-4 mt-6">
         {boards.map((board) => (
-          <BoardCard key={board._id}
-          board={board}
-    onClick={()=>navigate("/Board")}
+          <BoardCard  key={board._id}
+  board={board}
+  onEdit={handleEditBoard}
+  onDelete={handleDeleteBoard}
     />
         ))}
       </div>

@@ -1,5 +1,5 @@
 import express from "express";
-import { createBoard, getAllBoard,getSingleBoard,deleteBoard,addMember,removeMember,getAllMember } from "../controllers/board.controller.js";
+import { createBoard, getAllBoard,getSingleBoard,deleteBoard,addMember,removeMember,getAllMember, updateBoard } from "../controllers/board.controller.js";
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
 import { createList, getAllList } from "../controllers/list.controller.js";
 import authorizeBoardAction from "../middlewares/isAuthorizeBoardAction.middleware.js"
@@ -10,6 +10,7 @@ boardRouter.post("/",isLoggedIn,createBoard);
 boardRouter.get("/",isLoggedIn,getAllBoard);
 boardRouter.get("/:boardId",isLoggedIn,authorizeBoardAction("viewBoard"),getSingleBoard);
 boardRouter.delete("/:boardId",isLoggedIn,authorizeBoardAction("deleteBoard"),deleteBoard);
+boardRouter.put("/:boardId",isLoggedIn,authorizeBoardAction("updateBoard"),updateBoard)
 
 //router for the members
 

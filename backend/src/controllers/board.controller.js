@@ -243,5 +243,38 @@ try {
         })
 }
 };
+const updateBoard=async(req,res)=>{
+    const {title}=req.body;
+    const board=req.board;
 
-export {createBoard,getAllBoard,getSingleBoard,deleteBoard,addMember,removeMember,getAllMember}
+    const trimTitle=title?.trim();
+    if (board.title === trimTitle) {
+    return res.status(400).json({
+        success: false,
+        message: "Board title is unchanged"
+    });
+}
+if(!trimTitle){ 
+    return res.status(400).json({
+        success:false,
+        message:" Title is required"
+    })
+}
+
+try {
+    board.title=trimTitle;
+    await board.save();
+    res.status(200).json({
+        success:true,
+        message:"Board Updated successfully",
+        board:req.board
+    })
+} catch (error) {
+    res.status(500).json({
+        success:false,
+        message:"Board update failed",
+        error:error.message
+    })
+}
+}
+export {createBoard,getAllBoard,getSingleBoard,deleteBoard,addMember,removeMember,getAllMember,updateBoard}

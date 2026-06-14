@@ -1,4 +1,4 @@
-import  {createBoardService,deleteBoardService,getAllBoardService,getSingleBoardService,addMemberService,removeMemberService,getAllMemberService} from "../services/boardService.js"
+import  {createBoardService,deleteBoardService,getAllBoardService,getSingleBoardService,addMemberService,removeMemberService,getAllMemberService,updateBoardService} from "../services/boardService.js"
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 export const createBoard=createAsyncThunk("board/createBoard",
@@ -76,6 +76,21 @@ export const getAllMember=createAsyncThunk("board/getAllMember",
         } catch (error) {
             return thunkAPI.rejectWithValue(
         error.response?.data?.message || "Unable to featch member")
+        }
+    }
+)
+
+export const updateBoard=createAsyncThunk("board/updateBoard",
+    async(boardData,thunkAPI)=>{
+        try {
+            return await updateBoardService(boardData.boardId,{
+                title:boardData.title
+            });
+        } catch (error) {
+             console.log("UPDATE ERROR:", error.response?.data);
+            return thunkAPI.rejectWithValue(
+                error.response?.data?.message || "Unable to update the board"
+            )
         }
     }
 )
