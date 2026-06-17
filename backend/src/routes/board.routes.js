@@ -4,7 +4,7 @@ import { isLoggedIn } from "../middlewares/auth.middleware.js";
 import { createList, getAllList } from "../controllers/list.controller.js";
 import authorizeBoardAction from "../middlewares/isAuthorizeBoardAction.middleware.js"
  
-const boardRouter=express.Router();
+const boardRouter=express.Router(); 
 
 boardRouter.post("/",isLoggedIn,createBoard);
 boardRouter.get("/",isLoggedIn,getAllBoard);

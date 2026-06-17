@@ -13,6 +13,7 @@ import router from "./routes/user.routes.js"
 import boardRouter from './routes/board.routes.js';
 import listRouter from './routes/list.routes.js';
 import cardRouter from './routes/card.routes.js';
+import historyRouter from './routes/history.routes.js';
 
 
 dotenv.config()
@@ -38,6 +39,8 @@ app.use("/api/v1/user",router);
 app.use("/api/v1/boards",boardRouter);
 app.use("/api/v1/lists",listRouter);
 app.use("/api/v1/cards",cardRouter);
+console.log("History router mounted");
+app.use("/api/v1/history",historyRouter);
 
 initSocket(server);
 

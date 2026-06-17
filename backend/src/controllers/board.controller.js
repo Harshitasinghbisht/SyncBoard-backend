@@ -1,6 +1,8 @@
 import Board from "../models/Board.model.js";
 import User from "../models/User.model.js";
+import { createHistoryLog } from "../utils/HistoryService.js";
 import {getIO} from "../utils/socket.js"
+import HistoryLog from "../models/HistoryLog.model.js";
 
 const createBoard=async(req,res)=>{
        const {title}=req.body;
@@ -19,6 +21,19 @@ const createBoard=async(req,res)=>{
         owner:userId
         })
        
+       try {
+  await createHistoryLog({
+    boardId: board._id,
+    userId:userId,
+    action: "Board Created",
+    entityType: "board",
+    entityId: board._id,
+  });
+
+  console.log("History log created successfully");
+} catch (error) {
+  console.error("HISTORY LOG ERROR:", error);
+}
         res.status(200).json({
             success:true,
             message:"board creation successful",
@@ -277,4 +292,25 @@ try {
     })
 }
 }
-export {createBoard,getAllBoard,getSingleBoard,deleteBoard,addMember,removeMember,getAllMember,updateBoard}
+
+const getBoardActivities = async (req, res) => {
+  try {
+    const activities = await HistoryLog.find({
+      board: req.params.boardId,
+    })
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+console.log(activities ,"here controller")
+    res.status(200).json({
+      success: true,
+      activities,
+    });
+  } catch (error) {
+    
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+export {createBoard,getAllBoard,getSingleBoard,deleteBoard,addMember,removeMember,getAllMember,updateBoard,getBoardActivities}
