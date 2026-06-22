@@ -324,3 +324,7 @@ SyncBoard improves team productivity by:
 **Harshita Bisht**
 
 Built as a hackathon project focused on real-time collaborative project management using React, Redux Toolkit, Node.js, MongoDB, and Socket.IO.
+
+## Demo Video
+
+🎥 [Watch Demo Video](https://1drv.ms/v/c/8052bdfecffbe53c/IQBIrktDb54QT7Nx6jtJEvI7AZ4vRwN0lyP3dl230TrmzEc?e=hPFlFE)
