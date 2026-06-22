@@ -328,3 +328,26 @@ Built as a hackathon project focused on real-time collaborative project manageme
 ## Demo Video
 
 🎥 [Watch Demo Video](https://1drv.ms/v/c/8052bdfecffbe53c/IQBIrktDb54QT7Nx6jtJEvI7AZ4vRwN0lyP3dl230TrmzEc?e=hPFlFE)
+
+## Screenshots
+
+###Home Page
+![Home Page](./screenshot/homePage.png)
+
+### Register Page
+![Register Page](./screenshot/register.png)
+
+### Login Page
+![Login Page](./screenshot/login.png)
+
+### Dashboard
+![Dashboard](./screenshot/dashboard.png)
+
+### Board View
+![Board View](./screenshot/board.png)
+
+### Activity Log
+![Activity Log](./screenshot/activityLog.png)
+
+### Real Time Sync
+![Real Time Sync](./screenshot/realTimeSync.png)
