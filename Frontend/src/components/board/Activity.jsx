@@ -1,10 +1,53 @@
 import { Clock } from "lucide-react";
 
+function Activity({ activity = [] }) {
 
-function Activity({ activity = [] }){
-  console.log("Redux activity state:", activity);
-    return(
-       <div className="h-full rounded-2xl border border-zinc-800 bg-zinc-950/80 p-5 shadow-xl backdrop-blur-sm">
+  const getActivityText = (act) => {
+    
+    switch (act.action) {
+      case "created board":
+        return `created board "${act.details?.title}"`;
+
+      case  "renamed board ":
+   return `renamed board from "${act.details?.oldTitle}" to "${act.details?.newTitle}"`;
+
+      case "deleted board":
+        return `deleted board "${act.details?.title}"`;
+
+      case "created list":
+        return `created list "${act.details?.title}"`;
+
+      case "updated list":
+        return `updated list from "${act.details?.oldTitle}" to "${act.details?.newTitle  }"`;
+
+      case "deleted list":
+        return `deleted list "${act.details?.title}"`;
+
+      case "created card":
+        return `created card "${act.details?.title}"`;
+
+      case "updated card":
+        return `updated card "${act.details?.oldTitle}" to "${act.details?.newTitle}"`;
+
+      case "deleted card":
+        return `deleted card "${act.details?.title}"`;
+
+      case "moved card":
+        return `moved "${act.details?.title}" from "${act.details?.from}" to "${act.details?.to}"`;
+
+      case "invited member":
+        return `invited ${act.details?.memberName} to the board`;
+
+      case "joined board":
+        return `joined the board`;
+
+      default:
+        return act.action;
+    }
+  };
+
+  return (
+    <div className="h-full rounded-2xl border border-zinc-800 bg-zinc-950/80 p-5 shadow-xl backdrop-blur-sm">
       <div className="mb-5 flex items-center gap-3 border-b border-zinc-800 pb-3">
         <Clock size={18} />
         <h2 className="text-lg font-semibold text-white">
@@ -27,7 +70,7 @@ function Activity({ activity = [] }){
                 <span className="font-semibold text-violet-400">
                   {act.user?.name}
                 </span>{" "}
-                {act.action}
+                {getActivityText(act)}
               </p>
 
               <p className="mt-2 text-xs font-medium tracking-wide text-zinc-500">
@@ -43,7 +86,7 @@ function Activity({ activity = [] }){
         </div>
       )}
     </div>
-    )
+  );
 }
 
-export default Activity
+export default Activity;

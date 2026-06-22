@@ -18,7 +18,10 @@ import { cardMovedRealtime ,cardCreatedRealtime,cardUpdatedRealTime,cardDeleteRe
 import { createListRealTime ,updateListRealTime,deleteListRealTime} from "../redux/listSlice.js";
 import { addMemberRealTime,removeMemberRealTime } from "../redux/boardSlice.js";
 import Activity from "../components/board/Activity.jsx";
-import{actCreateBoard} from "../Thunks/activityThunks.js"
+import{fetchBoardActivities} from "../Thunks/activityThunks.js"
+import { addActivity } from "../redux/activitySlice.js";
+
+
 
 function Board() {
 
@@ -46,13 +49,7 @@ const [showActivity, setShowActivity] = useState(false);
   const isDraggingRef = useRef(false);
   const lastOverRef = useRef(null);
 
-  //fro activity
-  useEffect(() => {
-  if (showActivity && boardId) {
-    dispatch(actCreateBoard(boardId));
-  }
-}, [showActivity, boardId, dispatch]);
-
+  
   useEffect(() => {
     if (!boardId) return;
 
@@ -136,26 +133,31 @@ const [showActivity, setShowActivity] = useState(false);
 
  
  // for update card
-  useEffect(()=>{
-   const handleUpdateCard=(card)=>{
-    dispatch(cardUpdatedRealTime(card))
-   };
-   socket.on("updateCard",handleUpdateCard);
+ useEffect(() => {
+  const handleUpdateCard = (card) => {
+    dispatch(cardUpdatedRealTime(card));
+  };
 
-   return()=>socket.off("updateCard",handleUpdateCard);
-  })
+  socket.on("updateCard", handleUpdateCard);
+
+  return () => {
+    socket.off("updateCard", handleUpdateCard);
+  };
+}, [dispatch]);
 
   // for delete card
 
-  useEffect(()=>{
-    const handleDeleteCard=(card)=>{
-      dispatch(cardDeleteRealTime(card));
-    }
+useEffect(() => {
+  const handleDeleteCard = (card) => {
+    dispatch(cardDeleteRealTime(card));
+  };
 
-    socket.on("deleteCard",handleDeleteCard);
+  socket.on("deleteCard", handleDeleteCard);
 
-    return()=>socket.off("deleteCard",handleDeleteCard);
-  })
+  return () => {
+    socket.off("deleteCard", handleDeleteCard);
+  };
+}, [dispatch]);
  const handleCreateList = (title) => {
     dispatch(createList({ boardId, title }));
     setOpenList(false);
@@ -171,7 +173,7 @@ const [showActivity, setShowActivity] = useState(false);
     };
     socket.on("createList",handleCreateList);
       return ()=>socket.off("createList",handleCreateList);
-  })
+  },[dispatch])
 
   //update List
 
@@ -182,7 +184,7 @@ const [showActivity, setShowActivity] = useState(false);
 
     socket.on("updateList",handleUpdateList);
     return()=>socket.off("updateList",handleUpdateList)
-  })
+  },[dispatch])
 
   //deleteList
 
@@ -193,7 +195,7 @@ const [showActivity, setShowActivity] = useState(false);
 
     socket.on("deleteList",handleDeleteList);
     return()=>socket.off("deleteList",handleDeleteList);
-  })
+  },[dispatch])
 
   //useEffect for members
 
@@ -373,6 +375,30 @@ const [showActivity, setShowActivity] = useState(false);
     });
   };
 
+  //socket for activity log
+  const activities = useSelector(
+  (state) => state.activity.activity
+);
+
+
+
+useEffect(() => {
+  if (!boardId) return;
+  dispatch(fetchBoardActivities(boardId));
+}, [dispatch, boardId]);
+
+useEffect(() => {
+  const handleActivity = (act) => {
+    console.log("SOCKET RECEIVED:", act);
+    dispatch(addActivity(act));
+  };
+
+  socket.on("activityCreated", handleActivity);
+
+  return () => {
+    socket.off("activityCreated", handleActivity);
+  };
+}, [dispatch]);
   if (loading) {
     return <h1>Loading...</h1>;
   }
@@ -452,8 +478,9 @@ const [showActivity, setShowActivity] = useState(false);
       ✕
     </button>
 
-    <div className="h-full overflow-y-auto pt-14">
-      <Activity activity={activity} />
+    <div 
+    className="h-full overflow-y-auto pt-14">
+      <Activity activity={activities} />
     </div>
   </div>
 )}

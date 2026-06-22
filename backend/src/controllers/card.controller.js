@@ -2,12 +2,14 @@ import List from "../models/List.model.js"
 import Card from "../models/Card.model.js";
 import mongoose from "mongoose";
 import { getIO } from "../utils/socket.js";
+import { createHistoryLog } from "../utils/HistoryService.js";
 
 const createCard=async(req,res)=>{
     const list=req.list;
     const board=req.board;
     const {title,description}=req.body;
     const {id:userId}=req.user;
+    const user = req.user?.id || req.user?._id;
     try {
        const trimTitle = title?.trim();
     const trimDescription = description?.trim() || "";
@@ -30,8 +32,25 @@ const createCard=async(req,res)=>{
         order:newOrder,
         createdBy:userId
      })
+    
+      try {
+       const act=  await createHistoryLog({
+           boardId: board._id,
+           userId:user,
+           action: "created card",
+           entityType: "task",
+           entityId: card._id,
+           details: {
+              title:trimTitle
+           }
+         });
+      } catch (error) {
+        console.log("history create card log",error.message)
+      }
+
      const io=getIO();
      io.to(board._id.toString()).emit("cardCreated",card)
+     io.to(card.boardId.toString()).emit("activityCreated",act)
      res.status(201).json({
         success:true,
         message:"Card creation successfully",
@@ -70,6 +89,7 @@ const getAllCard=async(req,res)=>{
 const updateCard=async(req,res)=>{
     const {title,description}=req.body;
     const card=req.card;
+     const oldTitle=card.title;
 
   const trimmedTitle = title?.trim();
   const trimmedDescription = description?.trim();
@@ -87,6 +107,7 @@ const updateCard=async(req,res)=>{
         message: "Title cannot be empty"
       });
     }
+   
     card.title = trimmedTitle;
   }
 
@@ -97,8 +118,25 @@ const updateCard=async(req,res)=>{
     try {
       
         await card.save();
+
+        try {
+      const act=    await createHistoryLog({
+           boardId: card.boardId,
+           userId:card.createdBy,
+           action: "updated card",
+           entityType: "task",
+           entityId: card._id,
+           details: {
+              newTitle:trimmedTitle,
+              oldTitle
+           }
+         });
+        } catch (error) {
+          console.log("update card",error.message)
+        }
 const io=getIO();
 io.to(card.boardId.toString()).emit("updateCard",card);
+io.to(card.boardId.toString()).emit("activityCreated",act)
         res.status(200).json({
                 success:true,
                 message:"card updation successful",
@@ -116,6 +154,17 @@ const deleteCard=async(req,res)=>{
     const card=req.card;
     try {
         await card.deleteOne();
+
+       const act= await createHistoryLog({
+         boardId: card.boardId,
+         userId:card.createdBy,
+         action: "deleted card",
+         entityType: "task",
+         entityId: card._id,
+         details: {
+            title:card.title
+         }
+       });
         res.status(200).json({
             success:true,
             message:"card deleted successfully"
@@ -126,6 +175,7 @@ const deleteCard=async(req,res)=>{
   cardId: card._id,
   listId: card.listId,
 });
+io.to(card.boardId.toString()).emit("activityCreated",act)
     } catch (error) {
          res.status(500).json({
             success:false,
@@ -218,6 +268,8 @@ const moveCard = async (req, res) => {
       }
 
       await session.commitTransaction();
+
+      
       io.to(board._id.toString()).emit("cardMoved", {
         boardId: board._id.toString(),
         card,
@@ -270,7 +322,22 @@ const moveCard = async (req, res) => {
 
       await session.commitTransaction();
 
-     
+      try {
+     const act=   await createHistoryLog({
+          boardId: card.boardId,
+          userId:card.createdBy,
+          action: "moved card",
+          entityType: "task",
+          entityId: card._id,
+          details: {
+             from:sourceList.title,
+             to:destinationList.title,
+             title:card.title
+          }
+        });
+       } catch (error) {
+        console.log("move card",error.message)
+       }
 
      io.to(board._id.toString()).emit("cardMoved",{
       boardId:board._id,
@@ -279,7 +346,7 @@ const moveCard = async (req, res) => {
       destinationListId,
       newPosition
      })
-
+     io.to(board._id.toString()).emit("activityCreated",act)
      console.log(" ewmmited cardMoved")
 
       return res.status(200).json({

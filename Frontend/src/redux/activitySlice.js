@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { actCreateBoard } from "../Thunks/activityThunks";
+import { fetchBoardActivities } from "../Thunks/activityThunks";
 
 
 const initialState={
@@ -13,27 +13,32 @@ const initialState={
 
 const activitySlice=createSlice({
     name:"activity",
-    initialState,
+    initialState,   
     reducers:{clearError:(state)=>{
      state.error=null
+    },
+ addActivity: (state, action) => {
+      state.activity.unshift(action.payload);
+       console.log("PAYLOAD:", action.payload);
     }},
+     
     extraReducers:(builder)=>{
         builder
 
         //cretate board log
-        .addCase(actCreateBoard.pending,(state)=>{
+        .addCase(fetchBoardActivities.pending,(state)=>{
                     state.loading=true;
                     state.success=false;
                 })
-                .addCase(actCreateBoard.fulfilled, (state, action) => {
-                     console.log("PAYLOAD:", action.payload);
+                .addCase(fetchBoardActivities.fulfilled, (state, action) => {
+                     
                     state.loading = false;
                     state.error = null;
-                    state.activity = action.payload.activities;
+                     state.activity = action.payload.activities || action.payload;
                     state.success = true;
 
         })
-                .addCase(actCreateBoard.rejected,(state,action)=>{
+                .addCase(fetchBoardActivities.rejected,(state,action)=>{
                     state.loading=false;
                     state.success=false;
                     state.error=action.payload;
@@ -41,5 +46,5 @@ const activitySlice=createSlice({
     }
 })
 
-export const { clearError } = activitySlice.actions;
+export const { clearError , addActivity } = activitySlice.actions;
 export default activitySlice.reducer;

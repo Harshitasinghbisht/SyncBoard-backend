@@ -1,9 +1,12 @@
 import List from "../models/List.model.js";
 import {getIO} from "../utils/socket.js"
+import { createHistoryLog } from "../utils/HistoryService.js";
+
 
 const createList=async(req,res)=>{
  const {title}=req.body;
  const board=req.board;
+  const userId = req.user?.id || req.user?._id;
 
  if(!title || !title.trim()){
     return res.status(400).json({
@@ -33,8 +36,20 @@ if(!list){
     message:"unable to create list"
     })
 }
+const act=await createHistoryLog({
+    boardId: board._id,
+    userId,
+    action: "created list",
+    entityType: "list",
+    entityId: list._id,
+    details: {title}
+  });
+
+console.log("controller",act)
 const io=getIO();
-io.to(board._id.toString()).emit("createList",list)
+io.to(board._id.toString()).emit("createList",list);
+ io.to(board._id.toString()).emit("activityCreated",act);
+
     res.status(201).json({
         success:true,
         message:"list created successfully",
@@ -54,6 +69,7 @@ const updateList=async(req,res)=>{
 
 const {title}=req.body;
 const list=req.list;
+ const userId = req.user?.id || req.user?._id;
 
 const trimTitle=title?.trim();
 if(!trimTitle){ 
@@ -63,11 +79,25 @@ if(!trimTitle){
     })
 }
 try {
+      const oldTitle=list.title;
       req.list.title = trimTitle;
       await req.list.save();
 
+  const act= await createHistoryLog({
+    boardId: list.board,
+    userId,
+    action: "updated list",
+    entityType: "list",
+    entityId: list._id,
+    details: {
+      newTitle:trimTitle,
+      oldTitle
+    }
+  });
       const io=getIO();
       io.to(list.board.toString()).emit("updateList",list);
+       
+      io.to(list.board.toString()).emit("activityCreated",act)
   res.status(200).json({
     success:true,
     message:"list updated successfully",
@@ -84,11 +114,27 @@ try {
 const deleteList=async(req,res)=>{
 
 const list=req.list;
+const userId = req.user?.id || req.user?._id;
 try {
     await list.deleteOne();
+    
 
+   const act= await createHistoryLog({
+    boardId: list.board,
+    userId,
+    action: "deleted list",
+    entityType: "list",
+    entityId: list._id,
+    details: {
+      title:list.title
+    }
+  });
+    
     const io=getIO();
+     
+    io.to(list.board.toString()).emit("activityCreated",act)
     io.to(list.board.toString()).emit("deleteList",list);
+    
     res.status(200).json({
         success:true,
         message:"list deleted successfully",

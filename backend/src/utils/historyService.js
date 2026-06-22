@@ -8,7 +8,7 @@ export const createHistoryLog=async({
     entityId,
     details={}
 })=>{
-    await HistoryLog.create({
+   const log = await HistoryLog.create({
     board: boardId,
     user: userId,
     action,
@@ -16,4 +16,6 @@ export const createHistoryLog=async({
     entityId,
     details
     })
+      return await HistoryLog.findById(log._id)
+    .populate("user", "name email");
 }

@@ -22,15 +22,19 @@ const createBoard=async(req,res)=>{
         })
        
        try {
-  await createHistoryLog({
+  const act=await createHistoryLog({
     boardId: board._id,
     userId:userId,
-    action: "Board Created",
+    action: "created board ",
     entityType: "board",
     entityId: board._id,
+    details: {title}
   });
 
   console.log("History log created successfully");
+
+  const io=getIO();
+io.to(board._id.toString()).emit("activityCreated",act)
 } catch (error) {
   console.error("HISTORY LOG ERROR:", error);
 }
@@ -106,6 +110,17 @@ const deleteBoard=async(req,res)=>{
                 message:"board not found",
             })
         }
+            await createHistoryLog({
+               boardId: board._id,
+               userId:board.owner,
+               action: "deleted board",
+               entityType: "board",
+               entityId: board._id,
+               details: {title}
+             });
+              const io=getIO();
+io.to(board._id.toString()).emit("activityCreated",act)
+
         res.status(200).json({
             success:true,
             message:"Board deleted successfully",
@@ -161,11 +176,21 @@ try {
       const updatedBoard = await Board.findById(board._id)
       .populate("owner", "name email")
       .populate("members", "name email");
-      
+      const act=await createHistoryLog({
+    boardId: board._id,
+    userId:board.owner,
+    action: "added member",
+    entityType: "member",
+    entityId: board._id,
+    details: {
+        user
+    }
+  });
 const io=getIO();
 io.to(board._id.toString()).emit("addMember",updatedBoard)
 console.log("Emitting boardAdded to:", memberId.toString());
 io.to(memberId.toString()).emit("boardAdded", updatedBoard);
+io.to(board._id.toString()).emit("activityCreated",act)
 
 res.status(200).json({
     success:true,
@@ -208,9 +233,21 @@ try {
 const updatedBoard = await Board.findById(board._id)
       .populate("owner", "name email")
       .populate("members", "name email");
+
+       const act=await createHistoryLog({
+    boardId: board._id,
+    userId:board.owner,
+    action: "deleted member",
+    entityType: "member",
+    entityId: board._id,
+    details: {
+        updatedBoard
+    }
+  });
     
    const io=getIO();
    io.to(board._id.toString()).emit("removeMember",updatedBoard)
+   io.to(board._id.toString()).emit("activityCreated",act)
     res.status(200).json({
         success:true,
         message:"Member removed successfully",
@@ -261,6 +298,8 @@ try {
 const updateBoard=async(req,res)=>{
     const {title}=req.body;
     const board=req.board;
+   const userId = req.user?.id || req.user?._id;
+   console.log(userId);
 
     const trimTitle=title?.trim();
     if (board.title === trimTitle) {
@@ -277,8 +316,23 @@ if(!trimTitle){
 }
 
 try {
+    const oldTitle=board.title;
     board.title=trimTitle;
     await board.save();
+
+         await createHistoryLog({
+         boardId: board._id,
+         userId,
+         action: "renamed board ",
+         entityType: "board",
+         entityId: board._id,
+         details: {
+            oldTitle,
+            newTitle:trimTitle
+         }
+       });
+        const io=getIO();
+io.to(board._id.toString()).emit("activityCreated",act)
     res.status(200).json({
         success:true,
         message:"Board Updated successfully",
@@ -293,24 +347,4 @@ try {
 }
 }
 
-const getBoardActivities = async (req, res) => {
-  try {
-    const activities = await HistoryLog.find({
-      board: req.params.boardId,
-    })
-      .populate("user", "name email")
-      .sort({ createdAt: -1 });
-console.log(activities ,"here controller")
-    res.status(200).json({
-      success: true,
-      activities,
-    });
-  } catch (error) {
-    
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-export {createBoard,getAllBoard,getSingleBoard,deleteBoard,addMember,removeMember,getAllMember,updateBoard,getBoardActivities}
+export {createBoard,getAllBoard,getSingleBoard,deleteBoard,addMember,removeMember,getAllMember,updateBoard}
