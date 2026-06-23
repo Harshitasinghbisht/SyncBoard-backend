@@ -25,7 +25,7 @@ import { addActivity } from "../redux/activitySlice.js";
 
 function Board() {
 
- 
+
 const [showActivity, setShowActivity] = useState(false);
 
   const dispatch = useDispatch();
@@ -43,13 +43,14 @@ const [showActivity, setShowActivity] = useState(false);
 
   const [openList, setOpenList] = useState(false);
   const [cardsByList, setCardsByList] = useState({});
-  
+
 
   const dragOriginListRef = useRef(null);
   const isDraggingRef = useRef(false);
+  const draggingCardIdRef = useRef(null); // tracks WHICH card this client is dragging
   const lastOverRef = useRef(null);
 
-  
+
   useEffect(() => {
     if (!boardId) return;
 
@@ -103,7 +104,12 @@ const [showActivity, setShowActivity] = useState(false);
     if (!boardId) return;
 
     const handleCardMoved = (data) => {
-      if (isDraggingRef.current) return;
+      // Only ignore this event if it's about the exact card THIS client
+      // is currently dragging. Never block updates about other cards,
+      // even while a local drag is in progress.
+      if (isDraggingRef.current && data.cardId === draggingCardIdRef.current) {
+        return;
+      }
 
       console.log("Realtime card move received:", data);
       dispatch(cardMovedRealtime(data));
@@ -222,6 +228,7 @@ useEffect(() => {
     if (active.data.current?.type !== "card") return;
 
     isDraggingRef.current = true;
+    draggingCardIdRef.current = active.id;
     dragOriginListRef.current = active.data.current?.listId || null;
     lastOverRef.current = null;
   };
@@ -232,6 +239,8 @@ useEffect(() => {
 
     const cardId = active.id;
     const overId = over.id;
+
+    if (cardId === overId) return; // no-op self-hover, skip
 
     const overKey = `${cardId}-${overId}`;
 
@@ -305,27 +314,42 @@ useEffect(() => {
         listId: destinationListId,
       });
 
-      return {
+      const next = {
         ...prev,
         [currentListId]: currentCards,
         [destinationListId]: cleanedDestinationCards,
       };
+
+      // Dev-only sanity check: warns in console if a card ends up
+      // duplicated across lists - the root cause of runaway re-renders.
+      if (process.env.NODE_ENV !== "production") {
+        const allIds = Object.values(next).flat().map((c) => c._id);
+        const dupes = allIds.filter((id, i) => allIds.indexOf(id) !== i);
+        if (dupes.length) {
+          console.warn("[Board] Duplicate card IDs detected after dragOver:", dupes);
+        }
+      }
+
+      return next;
     });
   };
 
   const handleDragEnd = ({ active, over }) => {
+    const cardId = active?.id;
+    const sourceListId =
+      dragOriginListRef.current || active?.data.current?.listId;
+
+    // Reset drag state immediately - no setTimeout needed, since the
+    // socket handler now filters by specific card id instead of
+    // blocking all incoming updates while any drag is in progress.
+    isDraggingRef.current = false;
+    draggingCardIdRef.current = null;
+    dragOriginListRef.current = null;
     lastOverRef.current = null;
 
-    if (!over || active.data.current?.type !== "card") {
-      isDraggingRef.current = false;
-      dragOriginListRef.current = null;
+    if (!over || active?.data.current?.type !== "card") {
       return;
     }
-
-    const cardId = active.id;
-
-    const sourceListId =
-      dragOriginListRef.current || active.data.current?.listId;
 
     let destinationListId = null;
 
@@ -336,8 +360,6 @@ useEffect(() => {
     }
 
     if (!cardId || !sourceListId || !destinationListId) {
-      isDraggingRef.current = false;
-      dragOriginListRef.current = null;
       return;
     }
 
@@ -366,13 +388,7 @@ useEffect(() => {
           newPosition,
         },
       })
-    ).finally(() => {
-      setTimeout(() => {
-        isDraggingRef.current = false;
-        dragOriginListRef.current = null;
-        lastOverRef.current = null;
-      }, 100);
-    });
+    );
   };
 
   //socket for activity log
