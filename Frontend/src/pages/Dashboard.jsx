@@ -39,14 +39,14 @@ useEffect(() => {
   const userId = user?._id || user?.id;
 
   if (userId) {
-    console.log("Emitting joinUser:", userId);
+   
     socket.emit("joinUser", userId);
   }
 }, [user]);
 //board added when user become member
 useEffect(() => {
   const handleBoardAdded = (board) => {
-    console.log("boardAdded received:", board);
+    
     dispatch(boardAddedRealTime(board));
   };
 

@@ -111,7 +111,7 @@ const [showActivity, setShowActivity] = useState(false);
         return;
       }
 
-      console.log("Realtime card move received:", data);
+     
       dispatch(cardMovedRealtime(data));
     };
 
@@ -405,7 +405,7 @@ useEffect(() => {
 
 useEffect(() => {
   const handleActivity = (act) => {
-    console.log("SOCKET RECEIVED:", act);
+    
     dispatch(addActivity(act));
   };
 
