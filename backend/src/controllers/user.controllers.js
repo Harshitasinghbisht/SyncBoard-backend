@@ -66,7 +66,7 @@ try {
   if(!user){
       return res.status(400).json({
         success:false,
-      message:"invalid email,password"
+      message:"invalid email or password"
     })
   }
     const isMatched=await bcrypt.compare(password,user.password)
@@ -76,7 +76,7 @@ try {
       message:"invalid email,password"
     })
     }
-    //isverified  validation check
+   
 
     // this token must be saved  due to this token the user is stayed login
     //if its expire the user have to login again
@@ -86,12 +86,12 @@ try {
       process.env.JWT_SECRET,
       {expiresIn:"24h"}
     )
-    const cookieOption={
-    httpOnly:true,
-    secure:process.env.NODE_ENV === "production",
-    sameSite:isProduction ? "none" : "lax", 
-    maxAge:24*60*60*1000  
-    };
+   const cookieOption = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  maxAge: 24 * 60 * 60 * 1000
+};
     res.cookie("token",token,cookieOption);
 
     res.status(200).json({
