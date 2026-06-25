@@ -23,7 +23,7 @@ const server=http.createServer(app);
 app.use(cors({
      origin: [
         "http://localhost:5173",
-         "https://sync-board-backend-63c04mpjg-harshita-bisht.vercel.app"
+         "https://sync-board-backend-2fljr85g2-harshita-bisht.vercel.app"
       ],
     credentials:true,
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS', 'PUT', 'PATCH'],
