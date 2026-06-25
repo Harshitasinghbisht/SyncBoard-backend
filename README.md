@@ -329,6 +329,10 @@ Built as a hackathon project focused on real-time collaborative project manageme
 
 🎥 [Watch Demo Video](https://1drv.ms/v/c/8052bdfecffbe53c/IQBIrktDb54QT7Nx6jtJEvI7AZ4vRwN0lyP3dl230TrmzEc?e=hPFlFE)
 
+## Live Link
+
+🎥 [Live](https://sync-board-v1.vercel.app)
+
 ## Screenshots
 
 ###Home Page
