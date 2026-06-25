@@ -1,6 +1,6 @@
 import Board from "../models/Board.model.js";
 import User from "../models/User.model.js";
-import { createHistoryLog } from "../utils/HistoryService.js";
+import { createHistoryLog } from "../utils/historyService.js";
 import {getIO} from "../utils/socket.js"
 
 
