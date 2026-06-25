@@ -21,7 +21,10 @@ const app=express();
 const server=http.createServer(app);
 
 app.use(cors({
-    origin:process.env.FRONTEND_BASE_URL,
+     origin: [
+        "http://localhost:5173",
+        process.env.FRONTEND_BASE_URL,
+      ],
     credentials:true,
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS', 'PUT', 'PATCH'],
     allowedHeaders:['Content-Type','Authorization']
@@ -39,7 +42,6 @@ app.use("/api/v1/user",router);
 app.use("/api/v1/boards",boardRouter);
 app.use("/api/v1/lists",listRouter);
 app.use("/api/v1/cards",cardRouter);
-console.log("History router mounted");
 app.use("/api/v1/history",historyRouter);
 
 initSocket(server);

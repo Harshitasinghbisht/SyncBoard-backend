@@ -4,6 +4,7 @@ import nodemailer from "nodemailer"
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken"
 
+
 const userRegister=async(req,res)=>{
 
   const { name, email, password } = req.body || {};
@@ -36,44 +37,6 @@ try {
         })
     }
 
-    const token=crypto.randomBytes(32).toString("hex");
-    user.verificationToken=token;
-    await user.save();
-
-    //sending email to verify the token
-    const transport = nodemailer.createTransport({
-  host: process.env.MAILTRAP_HOST, 
-  port: process.env.MAILTRAP_PORT,
-  secure:false,
-  auth: {
-    user: process.env.MAILTRAP_USERNAME,
-    pass: process.env.MAILTRAP_PASSWORD
-  }
-});
-
-const mailOption={
-   from: process.env.MAILTRAP_SENDEREMAIL,
-    to:user.email,
-    subject: "VERIFY YOUR EMAIL",
-    html: `
-    <div style="font-family: Arial, sans-serif; padding: 20px;">
-      <h2>Verify your email</h2>
-      <p>Click the button below to verify your account:</p>
-
-      <a href="http://localhost:5173/verify/${token}" 
-         style="display:inline-block; padding:10px 20px; background:#3b82f6; color:white; text-decoration:none; border-radius:6px;">
-         Verify Email
-      </a>
-
-      <p style="margin-top:20px; font-size:12px; color:gray;">
-        If you didn’t request this, you can ignore this email.
-      </p>
-    </div>
-  `   
-}
-
-   await transport.sendMail(mailOption);
-
  res.status(201).json({
   message:"User register succesfully",
   success:true,
@@ -89,33 +52,7 @@ const mailOption={
   
 
 };
-const userVerify=async(req,res)=>{
 
-const {token}=req.params;
-if(!token){
-  return res.status(400).json({
-    success:false,
-    message:"Invalid token"
-  })
-}
-
-  const user=await User.findOne({verificationToken:token})
-  
-if(!user){
-  return res.status(400).json({
-    success:false,
-    message:"invalid token"
-  })
-}
-user.isVerfied=true;
-user.verificationToken=undefined;
-await user.save();
-
-res.status(201).json({
-  message:"User verify succesfully",
-  success:true
- })
-}
   const userLogin=async(req,res)=>{
   const{email,password}=req.body;
   if(!email || !password){
@@ -141,12 +78,6 @@ res.status(201).json({
     }
     //isverified  validation check
 
-  if(!user.isVerfied){
-    return res.status(400).json({
-      success:false,
-      message:"Please verify your email first"
-    })
-    }
     // this token must be saved  due to this token the user is stayed login
     //if its expire the user have to login again
     //so we can save the token in the cokkies
@@ -157,8 +88,8 @@ res.status(201).json({
     )
     const cookieOption={
     httpOnly:true,
-    secure:false,
-    sameSite: "lax", 
+    secure:process.env.NODE_ENV === "production",
+    sameSite:isProduction ? "none" : "lax", 
     maxAge:24*60*60*1000  
     };
     res.cookie("token",token,cookieOption);
@@ -320,4 +251,4 @@ const resetPassword=async(req,res)=>{
   }
 }
 
-export {userRegister,userVerify,userLogin,logout,forgetPassword,resetPassword,getMe}
+export {userRegister,userLogin,logout,forgetPassword,resetPassword,getMe}

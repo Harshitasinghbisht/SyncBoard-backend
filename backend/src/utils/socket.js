@@ -4,15 +4,17 @@ let io;
  export const initSocket=(server)=>{
     io = new Server(server,{
         cors:{
-            origin: process.env.FRONTEND_BASE_URL,
+            origin: [
+        "http://localhost:5173",
+        process.env.FRONTEND_BASE_URL,
+      ],
             credentials: true,
         }
     })
  
 
  io.on("connection",(socket)=>{
-    console.log("socket connected",socket.id);
-
+   
     socket.on("joinBoard",(boardId)=>{
         socket.join(boardId);
         console.log(`User joined board ${boardId}`)

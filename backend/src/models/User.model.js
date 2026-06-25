@@ -10,19 +10,13 @@ const userSchema=new mongoose.Schema({
         enum:["user","admin"],
         default:"user"
     },
-    isVerfied:{
-        type:Boolean,
-        default:false
-    },
+   
     passwordResetToken:{
         type:String
     },
     passwordResetExpire:{
         type:Date
     },
-    verificationToken:{
-        type:String
-    }
 },{
     timestamps:true
 });

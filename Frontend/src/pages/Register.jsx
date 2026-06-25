@@ -1,9 +1,13 @@
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "../Thunks/authThunks.js";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+
 
 function Register(){
   const [message,setMessage]=useState("")
+  const navigate=useNavigate();
     const[formData,setFormData]=useState({
         name:"",
         email:"",
@@ -21,7 +25,6 @@ function Register(){
 
     const handleSubmit=(e)=>{
         e.preventDefault();
-      console.log("formData:", formData);
        dispatch(registerUser(formData));
        
          setFormData({
@@ -29,7 +32,8 @@ function Register(){
             email: "",
             password: "",
                     });
-        setMessage("Please verify your email. Check your inbox");
+        setMessage("Please login");
+      navigate("/signin")
     }
 
     
