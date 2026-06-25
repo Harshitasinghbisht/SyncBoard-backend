@@ -6,7 +6,7 @@ let io;
         cors:{
             origin: [
         "http://localhost:5173",
-         "https://sync-board-backend-dt3re7arw-harshita-bisht.vercel.app"
+         "https://sync-board-backend-git-main-harshita-bisht.vercel.app"
       ],
             credentials: true,
         }
