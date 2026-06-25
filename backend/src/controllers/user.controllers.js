@@ -139,11 +139,11 @@ const logout=async(req,res)=>{
     //we can also use some other alternative method to delete the token from cookies
     //res.cookies("token","",{ expire:new.Date(0)})
     //here Date(0) means 1970 date recent date is 2026 so it delete the token automatically by browser
-    res.clearCookie("token",{
-       httpOnly: true,
-      secure: false,       // use false in localhost if not using HTTPS
-      sameSite: "lax"
-    })
+     res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
     return res.status(200).json({
       message: "Logout successful",
       success: true
