@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 function Register(){
   const [message,setMessage]=useState("")
-  const navigate=useNavigate();
+
     const[formData,setFormData]=useState({
         name:"",
         email:"",
@@ -33,7 +33,7 @@ function Register(){
             password: "",
                     });
         setMessage("Please login");
-      navigate("/signin")
+     
     }
 
     
