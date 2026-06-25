@@ -1,5 +1,5 @@
  import List from "../models/List.model.js";
- import { hasPermission } from "../utils/Permission.js";
+ import { hasPermission } from "../utils/permission.js";
  import Board from "../models/Board.model.js";
 
  const authorizeListAction=(action)=>{

@@ -1,7 +1,7 @@
 import Board from "../models/Board.model.js";
 import List from "../models/List.model.js";
 import Card from "../models/Card.model.js";
-import { hasPermission } from "../utils/Permission.js";
+import { hasPermission } from "../utils/permission.js";
 
 const authorizeCardAction=(action)=>{
     return async(req,res,next)=>{

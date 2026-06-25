@@ -1,5 +1,5 @@
 import Board from "../models/Board.model.js";
-import { hasPermission } from "../utils/Permission.js";
+import { hasPermission } from "../utils/permission.js";
 
 const authorizeBoardAction =(action)=>{
     return async (req,res,next)=>{
