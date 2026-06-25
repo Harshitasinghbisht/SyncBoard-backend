@@ -24,15 +24,20 @@ function Register(){
     }
 
     const handleSubmit=(e)=>{
-        e.preventDefault();
-       dispatch(registerUser(formData));
-       
-         setFormData({
-            name: "",
-            email: "",
-            password: "",
-                    });
-        setMessage("Please login");
+         try {
+    const result = await dispatch(registerUser(formData)).unwrap();
+
+    setMessage("Registration successful. Please login");
+
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+    });
+
+  } catch (error) {
+    setMessage(error || "Registration failed");
+  }
      
     }
 
