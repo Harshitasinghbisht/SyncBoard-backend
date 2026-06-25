@@ -1,5 +1,4 @@
 import express from "express";
-import { createHistoryLog } from "../utils/HistoryService.js";
 import { isLoggedIn } from "../middlewares/auth.middleware.js";
 import getBoardActivities from "../controllers/history.controller.js";
 
