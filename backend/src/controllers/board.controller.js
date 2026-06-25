@@ -2,7 +2,7 @@ import Board from "../models/Board.model.js";
 import User from "../models/User.model.js";
 import { createHistoryLog } from "../utils/HistoryService.js";
 import {getIO} from "../utils/socket.js"
-import HistoryLog from "../models/HistoryLog.model.js";
+
 
 const createBoard=async(req,res)=>{
        const {title}=req.body;
