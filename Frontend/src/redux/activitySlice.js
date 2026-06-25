@@ -19,7 +19,6 @@ const activitySlice=createSlice({
     },
  addActivity: (state, action) => {
       state.activity.unshift(action.payload);
-       console.log("PAYLOAD:", action.payload);
     }},
      
     extraReducers:(builder)=>{

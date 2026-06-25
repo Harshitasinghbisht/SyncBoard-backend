@@ -32,9 +32,9 @@ const createCard=async(req,res)=>{
         order:newOrder,
         createdBy:userId
      })
-    
+    let act;
       try {
-       const act=  await createHistoryLog({
+        act=  await createHistoryLog({
            boardId: board._id,
            userId:user,
            action: "created card",
@@ -50,7 +50,9 @@ const createCard=async(req,res)=>{
 
      const io=getIO();
      io.to(board._id.toString()).emit("cardCreated",card)
-     io.to(card.boardId.toString()).emit("activityCreated",act)
+     if (act) {
+  io.to(board._id.toString()).emit("activityCreated", act);
+}
      res.status(201).json({
         success:true,
         message:"Card creation successfully",
@@ -90,6 +92,7 @@ const updateCard=async(req,res)=>{
     const {title,description}=req.body;
     const card=req.card;
      const oldTitle=card.title;
+     let act;
 
   const trimmedTitle = title?.trim();
   const trimmedDescription = description?.trim();
@@ -120,7 +123,7 @@ const updateCard=async(req,res)=>{
         await card.save();
 
         try {
-      const act=    await createHistoryLog({
+       act=    await createHistoryLog({
            boardId: card.boardId,
            userId:card.createdBy,
            action: "updated card",
@@ -136,7 +139,9 @@ const updateCard=async(req,res)=>{
         }
 const io=getIO();
 io.to(card.boardId.toString()).emit("updateCard",card);
-io.to(card.boardId.toString()).emit("activityCreated",act)
+if (act) {
+  io.to(card.boardId.toString()).emit("activityCreated", act);
+}
         res.status(200).json({
                 success:true,
                 message:"card updation successful",
@@ -188,6 +193,7 @@ const moveCard = async (req, res) => {
   const { sourceListId, destinationListId, newPosition } = req.body;
   const card = req.card;
   const board = req.board;
+  let act;
 
   const session = await mongoose.startSession();
   const io=getIO();
@@ -323,7 +329,7 @@ const moveCard = async (req, res) => {
       await session.commitTransaction();
 
       try {
-     const act=   await createHistoryLog({
+      act=   await createHistoryLog({
           boardId: card.boardId,
           userId:card.createdBy,
           action: "moved card",
@@ -346,8 +352,10 @@ const moveCard = async (req, res) => {
       destinationListId,
       newPosition
      })
-     io.to(board._id.toString()).emit("activityCreated",act)
-     console.log(" ewmmited cardMoved")
+    if (act) {
+  io.to(board._id.toString()).emit("activityCreated", act);
+} 
+     
 
       return res.status(200).json({
         success: true,
