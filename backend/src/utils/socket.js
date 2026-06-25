@@ -6,7 +6,7 @@ let io;
         cors:{
             origin: [
         "http://localhost:5173",
-        process.env.FRONTEND_BASE_URL,
+        process.env.FRONTEND_BASE_URL
       ],
             credentials: true,
         }
