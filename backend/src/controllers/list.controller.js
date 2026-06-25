@@ -1,6 +1,6 @@
 import List from "../models/List.model.js";
 import {getIO} from "../utils/socket.js"
-import { createHistoryLog } from "../utils/HistoryService.js";
+import { createHistoryLog } from "../utils/historyService.js";
 
 
 const createList=async(req,res)=>{

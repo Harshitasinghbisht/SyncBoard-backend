@@ -2,7 +2,7 @@ import List from "../models/List.model.js"
 import Card from "../models/Card.model.js";
 import mongoose from "mongoose";
 import { getIO } from "../utils/socket.js";
-import { createHistoryLog } from "../utils/HistoryService.js";
+import { createHistoryLog } from "../utils/historyService.js";
 
 const createCard=async(req,res)=>{
     const list=req.list;
